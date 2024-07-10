@@ -1,0 +1,24 @@
+<customlist scriptid="customlist_mrk_shipping_terms">
+  <description></description>
+  <isinactive>F</isinactive>
+  <isordered>T</isordered>
+  <name>MRK | Shipping Terms</name>
+  <customvalues>
+    <customvalue scriptid="val_17773123_5824946_sb1_270">
+      <isinactive>F</isinactive>
+      <value>3rd Party</value>
+    </customvalue>
+    <customvalue scriptid="val_17773124_5824946_sb1_869">
+      <isinactive>F</isinactive>
+      <value>Collect</value>
+    </customvalue>
+    <customvalue scriptid="val_17773125_5824946_sb1_269">
+      <isinactive>F</isinactive>
+      <value>Prepaid</value>
+    </customvalue>
+    <customvalue scriptid="val_17773126_5824946_sb1_234">
+      <isinactive>F</isinactive>
+      <value>Prepay and Add</value>
+    </customvalue>
+  </customvalues>
+</customlist>
