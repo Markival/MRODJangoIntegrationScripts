@@ -5,9 +5,9 @@
  * @version     1.0
  */
 
- define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log', 'N/runtime'],
+ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log'],
 
- function (record, error, search, format, log, runtime) {
+ function (record, error, search, format, log) {
 
      var fieldNames = {
          'email' : 'email',
@@ -29,25 +29,6 @@
              }
          }
      }
-     function addJsonToRecord(jsonData, type) {
-        //add try catch block
-        try {
-            var logLevel = runtime.getCurrentScript().logLevel;
-            log.debug('logLevel', logLevel);
-            if(logLevel === 'DEBUG') {
-                var requestsRecord = record.create({
-                type: 'customrecord_mrk_json_incoming_requests'
-            });
-            requestsRecord.setValue('custrecord_mrk_json_request', JSON.stringify(jsonData));
-            requestsRecord.setValue('custrecord_mrk_request_type', type);
-            requestsRecord.save({ignoreMandatoryFields: true});      
-        }
-    }
-        catch(e) {
-            log.error('Error', e);
-        }
-    }
-
 
      /**
       * Get Customer Record by Id
@@ -57,8 +38,7 @@
      function doGet(context) {
          var result = {};
          try {
-            addJsonToRecord(context, 'GET');
-            doValidation([context.id], ['id'], 'GET');
+             doValidation([context.id], ['id'], 'GET');
              var objRecord = record.load({
                  type: record.Type.CUSTOMER,
                  id: context.id
@@ -89,8 +69,7 @@
       function doPost(context) {
          log.debug('context', context);
          try {
-            addJsonToRecord(context, 'POST');
-            doValidation([context.email, context.externalId], ['email', 'externalid'], 'GET');
+             doValidation([context.email, context.externalId], ['email', 'externalid'], 'GET');
              // check whether there is already a customer with such email
              var customerEmail = context.email;
              if (!isNullOrEmpty(customerEmail)) {
@@ -161,7 +140,6 @@
      function doDelete(context) {
          var result = null;
          try {
-            addJsonToRecord(context, 'DELETE');
              doValidation([context.id], ['id'], 'DELETE');
              // record.delete({
              //     type: record.Type.CUSTOMER,
@@ -196,7 +174,6 @@
      function doPut(context) {
          var result = null;
          try {
-            addJsonToRecord(context, 'PUT');
              doValidation([context.id], ['id'], 'PUT');
              var objRecord = record.load({
                  type: record.Type.CUSTOMER,

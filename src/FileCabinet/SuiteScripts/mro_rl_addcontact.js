@@ -161,7 +161,7 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log'],
             contactRec.setValue('phone', contactData.phone);
             contactRec.setValue('externalid', String(contactData.externalId));
             contactRec.setValue('custentity_mro_ecom_id', String(contactData.externalId));
-            var contactId = contactRec.save({ ignoreMandatoryFields: true});
+            var contactId = contactRec.save();
             log.debug('contactId', contactId);
             return contactRec;
         }

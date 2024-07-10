@@ -53,8 +53,6 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log'],
                         lastName: custRec.getValue('lastname'),
                         email: custRec.getValue('email'),
                         phone: custRec.getValue('phone'),
-                        //TODO: Add address id to response
-                       // addressId: addressRec.id
                     }
                 };
             } catch (err) {

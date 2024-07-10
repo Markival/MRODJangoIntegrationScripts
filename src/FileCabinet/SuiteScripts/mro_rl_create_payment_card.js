@@ -205,7 +205,7 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log'],
                     objRecord.setValue('cardbrand', tokenFamilies[context['cardBrand']]);
                 }
 
-                objRecord.save({ ignoreMandatoryFields: true});
+                objRecord.save();
                 result = {
                     success: true,
                     message: "PaymentCardToken Record updated successfully!"
@@ -234,14 +234,10 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log'],
             objRecord.setValue('paymentmethod', 14); //Payment method
             objRecord.setValue('tokenfamily', 1); //Cybersource
             
-            var exceptParams = ['tokenExpirationDate', 'cardExpirationDate', 'cardBrand', 'cardIssuerID'];
+            var exceptParams = ['tokenExpirationDate', 'cardExpirationDate', 'cardBrand'];
             for (var fldName in params) {
                 if (params.hasOwnProperty(fldName) && !isNullOrEmpty(fieldNames[fldName]) && exceptParams.indexOf(fldName) == -1) {
-                    // if(fldName == 'cardLastFourDigits' || fldName == 'cardIssuerID') {
-                    //     objRecord.setValue(fieldNames[fldName], Number(params[fldName]));
-                    // } else {
-                        objRecord.setValue(fieldNames[fldName], params[fldName]);
-                   // }
+                    objRecord.setValue(fieldNames[fldName], params[fldName]);
                 }
             }
 
