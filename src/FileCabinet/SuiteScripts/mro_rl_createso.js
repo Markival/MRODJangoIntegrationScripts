@@ -29,7 +29,7 @@
 
      function doPost(params) {
          log.debug('params', params);
-         addJsonToRecord(context, 'POST');
+         addJsonToRecord(params, 'POST');
 
          var customerId = params.customerId;
          var externalId = params.externalId;
