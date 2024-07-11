@@ -8,7 +8,6 @@
 
  define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/config', 'N/url', 'SuiteScripts/Modules/mro/mro_serverside'],
 
-
  function (record, error, search, email, format, log, config, url, _mross) {
      /**
       * Post functions
@@ -26,14 +25,14 @@
          }
      }
 
-
+     var custRecord = null;
      function doPost(params) {
          log.debug('params', params);
          addJsonToRecord(params, 'POST');
 
          var customerId = params.customerId;
          var externalId = params.externalId;
-         var custRecord = null;
+        // var custRecord = null;
          try {
          doValidation([params.customerId, params.externalId], ['customerId', 'externalid'], 'POST');
 
@@ -215,7 +214,9 @@
              }
              if (itemsNotFound.length == params.items.length) {
                  return {success: false, message: 'Following Items not found!' + ' ' + JSON.stringify(itemsNotFound)}
-             }
+             } 
+             //TODO: else if itemsNotFound.length > 0, return message with items not found
+
              // Set shipping address
              var shippingAddressId = null;
              if (!isNullOrEmpty(params.shippingAddress)) {
@@ -276,7 +277,7 @@
       * @param {*} customerInfo
       */
      function getCustomer(customerId) {
-         var custRecord = null;
+         //var custRecord = null;
          if (!isNullOrEmpty(customerId)) {
              var mySearch = search.create({
                  type: search.Type.CUSTOMER,
@@ -290,7 +291,7 @@
                  results.push(result);
                  return true;
              });
-             var custRecord = null;
+             //var custRecord = null;
              if (results.length > 0) {
                  customerId = results[0].id;
                  custRecord = record.load({
@@ -364,7 +365,7 @@
            /**
             * Need to reload customer record because it has now changed.
             */
-             custRecord = getCustomer(custRecord.id);
+            //  custRecord = getCustomer(custRecord.id);
          }
          custRecord.selectLine({
              sublistId: 'addressbook',
@@ -430,6 +431,7 @@
          custRecord.save({
              ignoreMandatoryFields: true
      });
+     custRecord = getCustomer(custRecord.id);
          var lineCount = custRecord.getLineCount({
              sublistId: 'addressbook'
          });
