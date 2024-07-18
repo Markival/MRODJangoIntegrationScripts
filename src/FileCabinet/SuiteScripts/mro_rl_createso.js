@@ -6,9 +6,9 @@
  * @description This script is creating sales order
  */
 
- define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/config', 'N/url', 'SuiteScripts/Modules/mro/mro_serverside'],
+ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/config', 'N/url', 'SuiteScripts/Modules/mro/mro_serverside','N/runtime'],
 
- function (record, error, search, email, format, log, config, url, _mross) {
+ function (record, error, search, email, format, log, config, url, _mross, runtime) {
      /**
       * Post functions
       * @param {*} params
