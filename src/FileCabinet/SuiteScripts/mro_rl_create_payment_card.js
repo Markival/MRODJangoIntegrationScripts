@@ -419,8 +419,9 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log', 'N/runtime'],
         }
 
         function validateCardType(cardType) {
+            var nsCardType = null;
             var cardTypeLowerCase = cardType.toLowerCase();
-            var nsCardType = cardTypeLowerCase.indexOf('debit') > -1 ? 'DEBIT' : 'CREDIT'
+            nsCardType = cardTypeLowerCase.indexOf('debit') > -1 ? 'DEBIT' : 'CREDIT'
             return nsCardType;
         }
 
