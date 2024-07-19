@@ -117,6 +117,9 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log', 'N/runtime'],
             var result = null;
             try {
                 doValidation([context.token, context.customer], ['token', 'customer'], 'GET');
+                if (!isNullOrEmpty(context.cardType)) {
+                    context.cardType = validateCardType(context.cardType);
+                }
                 var pcRec = createPaymentCardToken(context);
 
 
@@ -176,9 +179,13 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log', 'N/runtime'],
          */
         function doPut(context) {
             addJsonToRecord(context, 'PUT', 'PAYMENT CARD TOKEN');
+
             var result = null;
             try {
                 doValidation([context.id], ['id'], 'PUT');
+                if (!isNullOrEmpty(context.cardType)) {
+                    context.cardType = validateCardType(context.cardType);
+                }
                 var objRecord = record.load({
                     type: record.Type.PAYMENT_CARD,
                     id: context.id
@@ -411,8 +418,10 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log', 'N/runtime'],
             }
         }
 
-        function validateParams(params) {
-            // cardType, cardLastFourDigits, token
+        function validateCardType(cardType) {
+            var cardTypeLowerCase = cardType.toLowerCase();
+            var nsCardType = cardTypeLowerCase.indexOf('debit') > -1 ? 'DEBIT' : 'CREDIT'
+            return nsCardType;
         }
 
         return {
