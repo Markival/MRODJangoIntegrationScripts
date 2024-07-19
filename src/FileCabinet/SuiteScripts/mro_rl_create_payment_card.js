@@ -412,7 +412,7 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log', 'N/runtime'],
         }
 
         function validateParams(params) {
-            
+            // cardType, cardLastFourDigits, token
         }
 
         return {
