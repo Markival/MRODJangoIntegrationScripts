@@ -3,11 +3,15 @@
  *@NScriptType Suitelet
  */
 
-define(['N/runtime', 'N/record', 'N/search', 'N/http', 'N/file', 'N/render', 'N/xml', 'N/format', 'N/email', 'N/redirect'], function (runtime, record, search, http, file, render, xml, format, email, redirect) {
+ define(['N/runtime', 'N/record', 'N/search', 'N/redirect', 'N/ui/message', 'N/error'], function (runtime, record, search, redirect, message, error) {
+    const intPaymentProcessingProfileId = '3';
     function onRequest(context) {
         try {
             if (context.request.method !== 'GET') return;
-            var objScript = runtime.getCurrentScript();
+            //throw error.create({
+            //name: 'Test Name - Suitelet',
+            //message: 'Test Message - Suitelet'
+            //});
 
             var objRequest = context.request;
             var intSalesOrderId = objRequest.parameters.internalid;
@@ -15,18 +19,26 @@ define(['N/runtime', 'N/record', 'N/search', 'N/http', 'N/file', 'N/render', 'N/
 
             if (intSalesOrderId == '' || intPaymentTokenId == '') return;
 
-            var intDepositId = createCustomerDeposit(intSalesOrderId, intPaymentTokenId);
-            if (intDepositId) {
+            var stDepositReturn = createCustomerDeposit(intSalesOrderId, intPaymentTokenId);
+            if (isNumericOnly(stDepositReturn)) {
                 setPaymentTokenInactive(intPaymentTokenId);
+                setSalesOrderCaptured(intSalesOrderId);
+            } else {
+                var stDepositReturnError = JSON.parse(stDepositReturn);
+                stDepositReturn = stDepositReturnError.name + ': ' + stDepositReturnError.message;
             }
-
-            redirect.toRecord({
-                type: record.Type.CUSTOMER_DEPOSIT,
-                id: intDepositId
-            })
+            var bSuccess = isNumericOnly(stDepositReturn) ? true : false;
+            context.response.write(JSON.stringify({
+                isSuccess: bSuccess,
+                depositReturn: stDepositReturn
+            }));
         } catch (ex) {
             var stError = (ex.getCode != null) ? ex.getCode() + '\n' + ex.getDetails() + '\n' : ex.toString();
             log.error('Error: onRequest()', stError);
+            context.response.write(JSON.stringify({
+                isSuccess: false,
+                depositReturn: stError
+            }));
         }
     }
 
@@ -73,20 +85,12 @@ define(['N/runtime', 'N/record', 'N/search', 'N/http', 'N/file', 'N/render', 'N/
                 });
             }
             objDepositRecord.setValue({
-                fieldId: 'custbody_cs_pymt_tran_level_type',
-                value: '3'
-            });
-            objDepositRecord.setValue({
-                fieldId: 'paymentoperation',
-                value: 'SALE'
-            });
-            objDepositRecord.setValue({
                 fieldId: 'paymentprocessingprofile',
-                value: '2'
+                value: intPaymentProcessingProfileId
             });
             objDepositRecord.setValue({
-                fieldId: 'handlingmode',
-                value: 'PROCESS'
+                fieldId: 'custbody_mrk_from_capture_token_btn',
+                value: true
             });
 
             var intDepositId = objDepositRecord.save({
@@ -97,6 +101,22 @@ define(['N/runtime', 'N/record', 'N/search', 'N/http', 'N/file', 'N/render', 'N/
         } catch (ex) {
             var stError = (ex.getCode != null) ? ex.getCode() + '\n' + ex.getDetails() + '\n' : ex.toString();
             log.error('Error: createCustomerDeposit()', stError);
+            return stError;
+        }
+    }
+
+    function setSalesOrderCaptured(salesOrderId) {
+        try {
+            record.submitFields({
+                type: record.Type.SALES_ORDER,
+                id: salesOrderId,
+                values: {
+                    custbody_mrk_deposit_created_capture: true
+                }
+            });
+        } catch (ex) {
+            var stError = (ex.getCode != null) ? ex.getCode() + '\n' + ex.getDetails() + '\n' : ex.toString();
+            log.error('Error: setSalesOrderCaptured()', stError);
             return null;
         }
     }
@@ -107,7 +127,7 @@ define(['N/runtime', 'N/record', 'N/search', 'N/http', 'N/file', 'N/render', 'N/
                 type: record.Type.PAYMENT_CARD_TOKEN,
                 id: paymentTokenId,
                 values: {
-                    inactive: true
+                    isinactive: true
                 }
             });
         } catch (ex) {
@@ -115,6 +135,10 @@ define(['N/runtime', 'N/record', 'N/search', 'N/http', 'N/file', 'N/render', 'N/
             log.error('Error: createCustomerDeposit()', stError);
             return null;
         }
+    }
+
+    function isNumericOnly(value) {
+        return !isNaN(value) && !isNaN(parseFloat(value));
     }
 
     return {

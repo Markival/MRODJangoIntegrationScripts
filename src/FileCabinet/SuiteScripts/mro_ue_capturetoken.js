@@ -27,8 +27,12 @@ define(['N/runtime', 'N/search', 'N/url'], (runtime, search, url) => {
             const intPaymentTokenId = objNewRecord.getValue({
                 fieldId: 'custbody_payment_card_token'
             });
+            const bIsOrderCaptured = objNewRecord.getValue({
+                fieldId: 'custbody_mrk_deposit_created_capture'
+            });
+            log.debug('bIsOrderCaptured', bIsOrderCaptured);
 
-            if ((!intPaymentTokenId || intPaymentTokenId == '') && searchRelatedDeposit(intRecordId) == 0) return;
+            if ((!intPaymentTokenId || intPaymentTokenId == '') || searchRelatedDeposit(intRecordId) > 0 || bIsOrderCaptured) return;
             const stUrl = url.resolveScript({
                 scriptId: 'customscript' + PARAM_SUITELET_ID,
                 deploymentId: 'customdeploy' + PARAM_SUITELET_ID,
@@ -38,11 +42,11 @@ define(['N/runtime', 'N/search', 'N/url'], (runtime, search, url) => {
                     userid: intUserId
                 }
             });
-
+            objForm.clientScriptModulePath = './mro_cs_capturetoken.js';
             objForm.addButton({
                 id: 'custpage_mrk_capturetokenbtn',
                 label: 'Capture Token',
-                functionName: 'window.open("' + stUrl + '", "_blank")'
+                functionName: `captureToken(${intRecordId}, ${intPaymentTokenId})`
             });
         } catch (ex) {
             var stError = (ex.getCode != null) ? ex.getCode() + '\n' + ex.getDetails() + '\n' : ex.toString();
