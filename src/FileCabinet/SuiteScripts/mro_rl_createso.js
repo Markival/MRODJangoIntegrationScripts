@@ -353,6 +353,7 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
 
                 if (addr1 == address.address1 && country == address.country &&
                     city == address.city && state == address.state && zip == address.postalCode) {
+                        log.debug('address found', i);
                     return i;
                 }
             }
@@ -369,19 +370,19 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
             var index = getCustomerAddressIndex(custRecord, address);
             if (index == -1) {
                 index = addCustomerAddress(custRecord, address);
-                /**
-                 * Need to reload customer record because it has now changed.
-                 */
-                //  custRecord = getCustomer(custRecord.id);
+                if (!isNullOrEmpty(custRecord.id)) {
+                    custRecord = getCustomer(custRecord.id);
+                }
             }
             custRecord.selectLine({
                 sublistId: 'addressbook',
-                line: index,
+                line: index
             });
             var addressId = custRecord.getCurrentSublistValue({
                 sublistId: 'addressbook',
-                fieldId: 'addressid',
+                fieldId: 'addressid'
             });
+            log.debug('addressId', addressId);
             return addressId;
         }
         /**
@@ -391,12 +392,16 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
          * @returns
          */
         function addCustomerAddress(custRecord, addressInfo) {
+            log.debug('addCustomerAddress', 'addCustomerAddress')
             // add addresses
             var address = addressInfo;
             custRecord.selectNewLine({
                 sublistId: 'addressbook'
             });
-
+            var lineCount = custRecord.getLineCount({
+                sublistId: 'addressbook'
+            });
+            log.debug('lineCount', lineCount);
             var myAddressSubRecord = custRecord.getCurrentSublistSubrecord({
                 sublistId: 'addressbook',
                 fieldId: 'addressbookaddress'
@@ -438,12 +443,13 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
             custRecord.save({
                 ignoreMandatoryFields: true
             });
-            custRecord = getCustomer(custRecord.id);
-            var lineCount = custRecord.getLineCount({
-                sublistId: 'addressbook'
-            });
+            // custRecord = getCustomer(custRecord.id);
+            // var lineCount = custRecord.getLineCount({
+            //     sublistId: 'addressbook'
+            // });
+            // log.debug('lineCount', lineCount);
 
-            return lineCount - 1;
+            return lineCount;
         }
 
         /**
