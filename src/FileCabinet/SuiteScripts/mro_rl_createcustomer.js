@@ -29,7 +29,7 @@
              }
          }
      }
-     function addJsonToRecord(jsonData, type) {
+     function addJsonToRecord(jsonData, type, recordType) {
         //add try catch block
         try {
             var logLevel = runtime.getCurrentScript().logLevel;
@@ -40,6 +40,8 @@
             });
             requestsRecord.setValue('custrecord_mrk_json_request', JSON.stringify(jsonData));
             requestsRecord.setValue('custrecord_mrk_request_type', type);
+            requestsRecord.setValue('custrecord_mrk_request_record_type', recordType);
+
             requestsRecord.save({ignoreMandatoryFields: true});      
         }
     }
@@ -57,7 +59,7 @@
      function doGet(context) {
          var result = {};
          try {
-            addJsonToRecord(context, 'GET');
+            addJsonToRecord(context, 'GET', 'CUSTOMER');
             doValidation([context.id], ['id'], 'GET');
              var objRecord = record.load({
                  type: record.Type.CUSTOMER,
@@ -89,7 +91,7 @@
       function doPost(context) {
          log.debug('context', context);
          try {
-            addJsonToRecord(context, 'POST');
+            addJsonToRecord(context, 'POST', 'CUSTOMER');
             doValidation([context.email, context.externalId], ['email', 'externalid'], 'GET');
              // check whether there is already a customer with such email
              var customerEmail = context.email;
@@ -161,7 +163,7 @@
      function doDelete(context) {
          var result = null;
          try {
-            addJsonToRecord(context, 'DELETE');
+            addJsonToRecord(context, 'DELETE', 'CUSTOMER');
              doValidation([context.id], ['id'], 'DELETE');
              // record.delete({
              //     type: record.Type.CUSTOMER,
@@ -196,7 +198,7 @@
      function doPut(context) {
          var result = null;
          try {
-            addJsonToRecord(context, 'PUT');
+            addJsonToRecord(context, 'PUT', 'CUSTOMER');
              doValidation([context.id], ['id'], 'PUT');
              var objRecord = record.load({
                  type: record.Type.CUSTOMER,

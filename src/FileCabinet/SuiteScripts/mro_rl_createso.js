@@ -28,7 +28,7 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
         var custRecord = null;
         function doPost(params) {
             log.debug('params', params);
-            addJsonToRecord(params, 'POST');
+            addJsonToRecord(params, 'POST', 'SALESORDER');
 
             var customerId = params.customerId;
             var externalId = params.externalId;
@@ -570,7 +570,7 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
         function isNullOrEmpty(val) {
             return (val == null || val == '' || val == undefined);
         }
-        function addJsonToRecord(jsonData, type) {
+        function addJsonToRecord(jsonData, type, recordType) {
             //add try catch block
             try {
                 var logLevel = runtime.getCurrentScript().logLevel;
@@ -581,6 +581,7 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                     });
                     requestsRecord.setValue('custrecord_mrk_json_request', JSON.stringify(jsonData));
                     requestsRecord.setValue('custrecord_mrk_request_type', type);
+                    requestsRecord.setValue('custrecord_mrk_request_record_type', recordType);
                     requestsRecord.save({ ignoreMandatoryFields: true });
                 }
             }

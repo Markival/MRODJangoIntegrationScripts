@@ -14,6 +14,7 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log'],
          * @returns results
          */
         function doPost(params) {
+            addJsonToRecord(params, 'POST', 'ADDRESS');
             var customerId = params.customerId || '';
             // var customerEmail = params.customerEmail;
 
@@ -216,6 +217,25 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log'],
         function isNullOrEmpty(val) {
 
             return (val == null || val == '' || val == undefined);
+        }
+        function addJsonToRecord(jsonData, type, recordType) {
+            //add try catch block
+            try {
+                var logLevel = runtime.getCurrentScript().logLevel;
+                log.debug('logLevel', logLevel);
+                if (logLevel === 'DEBUG') {
+                    var requestsRecord = record.create({
+                        type: 'customrecord_mrk_json_incoming_requests'
+                    });
+                    requestsRecord.setValue('custrecord_mrk_json_request', JSON.stringify(jsonData));
+                    requestsRecord.setValue('custrecord_mrk_request_type', type);
+                    requestsRecord.setValue('custrecord_mrk_request_record_type', recordType);
+                    requestsRecord.save({ ignoreMandatoryFields: true });
+                }
+            }
+            catch (e) {
+                log.error('Error', e);
+            }
         }
 
         return {
