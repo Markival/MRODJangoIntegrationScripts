@@ -120,6 +120,9 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log', 'N/runtime'],
                 if (!isNullOrEmpty(context.cardType)) {
                     context.cardType = validateCardType(context.cardType);
                 }
+                if (!isNullOrEmpty(context.cardIssuerID)) {
+                    fieldNames.cardIssuerID = isNumericOnly(context.cardIssuerID) ? 'cardissueridnumber' : 'cardnameoncard';
+                }
                 var pcRec = createPaymentCardToken(context);
 
 
@@ -185,6 +188,9 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log', 'N/runtime'],
                 doValidation([context.id], ['id'], 'PUT');
                 if (!isNullOrEmpty(context.cardType)) {
                     context.cardType = validateCardType(context.cardType);
+                }
+                if (!isNullOrEmpty(context.cardIssuerID)) {
+                    fieldNames.cardIssuerID = isNumericOnly(context.cardIssuerID) ? 'cardissueridnumber' : 'cardnameoncard';
                 }
                 var objRecord = record.load({
                     type: record.Type.PAYMENT_CARD,
@@ -421,8 +427,17 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log', 'N/runtime'],
         function validateCardType(cardType) {
             var nsCardType = null;
             var cardTypeLowerCase = cardType.toLowerCase();
-            nsCardType = cardTypeLowerCase.indexOf('debit') > -1 ? 'DEBIT' : 'CREDIT'
+
+            if (cardTypeLowerCase.indexOf('debit') > -1) {
+                nsCardType = 'DEBIT';
+            } else if (cardTypeLowerCase.indexOf('credit') > -1) {
+                nsCardType = 'CREDIT';
+            }
             return nsCardType;
+        }
+
+        function isNumericOnly(value) {
+            return !isNaN(value) && !isNaN(parseFloat(value));
         }
 
         return {
