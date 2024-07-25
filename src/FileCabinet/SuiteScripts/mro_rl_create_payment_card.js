@@ -29,6 +29,7 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log', 'N/runtime'],
             "cardType": 'cardtype',
             "cardExpirationDate": 'cardexpirationdate'
         };
+        var intPaymentMethodId = '14';
 
         var tokenFamilies = {
             '8Quanta': '18',
@@ -117,6 +118,11 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log', 'N/runtime'],
             var result = null;
             try {
                 doValidation([context.token, context.customer], ['token', 'customer'], 'GET');
+
+                if (!isNullOrEmpty(context.externalid)) {
+                    validateSalesOrder(context.externalid);
+                }
+
                 if (!isNullOrEmpty(context.cardType)) {
                     context.cardType = validateCardType(context.cardType);
                 }
@@ -323,7 +329,7 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log', 'N/runtime'],
                 isDynamic: true
             });
             // objRecord.setValue('instrumenttype', 3); //Payment Card Token
-            objRecord.setValue('paymentmethod', 14); //Payment method
+            objRecord.setValue('paymentmethod', intPaymentMethodId); //Payment method
             objRecord.setValue('tokenfamily', 1); //Cybersource
 
             var exceptParams = ['tokenExpirationDate', 'cardExpirationDate', 'cardBrand'];
@@ -434,6 +440,20 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log', 'N/runtime'],
                 nsCardType = 'CREDIT';
             }
             return nsCardType;
+        }
+
+        function validateSalesOrder(salesOrderId) {
+            var isExisting = false;
+            if (!isNullOrEmpty(salesOrderId)) isExisting = true;
+            if (getSalesOrder(salesOrderId)) isExisting = true;
+            
+            if (!isExisting) {
+                throw error.create({
+                    name: 'MISSING_REQ_ARG',
+                    message: 'Missing a required argument: salesOrderId for method: validateSalesOrder'
+                });
+            } 
+            return isExisting;
         }
 
         function isNumericOnly(value) {
