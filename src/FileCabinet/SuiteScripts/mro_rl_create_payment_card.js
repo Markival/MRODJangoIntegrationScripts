@@ -444,8 +444,7 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log', 'N/runtime'],
 
         function validateSalesOrder(salesOrderId) {
             var isExisting = false;
-            if (!isNullOrEmpty(salesOrderId)) isExisting = true;
-            if (getSalesOrder(salesOrderId)) isExisting = true;
+            if (!isNullOrEmpty(salesOrderId) && getSalesOrder(salesOrderId)) isExisting = true;
             
             if (!isExisting) {
                 throw error.create({
