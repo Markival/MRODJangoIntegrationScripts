@@ -20,6 +20,7 @@
             if (intSalesOrderId == '' || intPaymentTokenId == '') return;
 
             var stDepositReturn = createCustomerDeposit(intSalesOrderId, intPaymentTokenId);
+            log.debug('stDepositReturn', stDepositReturn);
             if (isNumericOnly(stDepositReturn)) {
                 setPaymentTokenInactive(intPaymentTokenId);
                 setSalesOrderCaptured(intSalesOrderId);

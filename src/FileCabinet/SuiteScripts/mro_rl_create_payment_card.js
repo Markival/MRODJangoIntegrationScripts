@@ -29,6 +29,7 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log', 'N/runtime'],
             "cardType": 'cardtype',
             "cardExpirationDate": 'cardexpirationdate'
         };
+        var intPaymentMethodId = '14';
 
         var tokenFamilies = {
             '8Quanta': '18',
@@ -117,8 +118,16 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log', 'N/runtime'],
             var result = null;
             try {
                 doValidation([context.token, context.customer], ['token', 'customer'], 'GET');
+
+                if (!isNullOrEmpty(context.externalid)) {
+                    validateSalesOrder(context.externalid);
+                }
+
                 if (!isNullOrEmpty(context.cardType)) {
                     context.cardType = validateCardType(context.cardType);
+                }
+                if (!isNullOrEmpty(context.cardIssuerID)) {
+                    fieldNames.cardIssuerID = isNumericOnly(context.cardIssuerID) ? 'cardissueridnumber' : 'cardnameoncard';
                 }
                 var pcRec = createPaymentCardToken(context);
 
@@ -185,6 +194,9 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log', 'N/runtime'],
                 doValidation([context.id], ['id'], 'PUT');
                 if (!isNullOrEmpty(context.cardType)) {
                     context.cardType = validateCardType(context.cardType);
+                }
+                if (!isNullOrEmpty(context.cardIssuerID)) {
+                    fieldNames.cardIssuerID = isNumericOnly(context.cardIssuerID) ? 'cardissueridnumber' : 'cardnameoncard';
                 }
                 var objRecord = record.load({
                     type: record.Type.PAYMENT_CARD,
@@ -317,7 +329,7 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log', 'N/runtime'],
                 isDynamic: true
             });
             // objRecord.setValue('instrumenttype', 3); //Payment Card Token
-            objRecord.setValue('paymentmethod', 14); //Payment method
+            objRecord.setValue('paymentmethod', intPaymentMethodId); //Payment method
             objRecord.setValue('tokenfamily', 1); //Cybersource
 
             var exceptParams = ['tokenExpirationDate', 'cardExpirationDate', 'cardBrand'];
@@ -421,8 +433,30 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log', 'N/runtime'],
         function validateCardType(cardType) {
             var nsCardType = null;
             var cardTypeLowerCase = cardType.toLowerCase();
-            nsCardType = cardTypeLowerCase.indexOf('debit') > -1 ? 'DEBIT' : 'CREDIT'
+
+            if (cardTypeLowerCase.indexOf('debit') > -1) {
+                nsCardType = 'DEBIT';
+            } else if (cardTypeLowerCase.indexOf('credit') > -1) {
+                nsCardType = 'CREDIT';
+            }
             return nsCardType;
+        }
+
+        function validateSalesOrder(salesOrderId) {
+            var isExisting = false;
+            if (!isNullOrEmpty(salesOrderId) && getSalesOrder(salesOrderId)) isExisting = true;
+            
+            if (!isExisting) {
+                throw error.create({
+                    name: 'MISSING_REQ_ARG',
+                    message: 'Missing a required argument: salesOrderId for method: validateSalesOrder'
+                });
+            } 
+            return isExisting;
+        }
+
+        function isNumericOnly(value) {
+            return !isNaN(value) && !isNaN(parseFloat(value));
         }
 
         return {
