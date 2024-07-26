@@ -170,7 +170,13 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                             fieldId: 'item',
                             value: Number(item.id)
                         });
-
+                        //add location
+                        soRecord.setCurrentSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'location',
+                            value: 4
+                        });
+                    
                         soRecord.setCurrentSublistValue({
                             sublistId: 'item',
                             fieldId: 'quantity',
