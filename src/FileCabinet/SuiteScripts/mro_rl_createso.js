@@ -100,6 +100,7 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
 
                 // Set location to Dropship
                 soRecord.setValue('location', 4); // Dropship Location
+                soRecord.setValue('cseg1', 4); // Financial Location - eCommerce
 
 
                 /*
@@ -176,17 +177,23 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                             fieldId: 'location',
                             value: 4
                         });
-                    
+                        //add financial location - eCommerce = 4
+                        soRecord.setCurrentSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'cseg1',
+                            value: 4
+                        });
                         soRecord.setCurrentSublistValue({
                             sublistId: 'item',
                             fieldId: 'quantity',
                             value: Number(itemObj.quantity)
                         });
-
+                        var priceAfterDisc = Number(Number(itemObj.price) - Number(itemObj.discountAmt || 0.00));
+                        log.debug('priceAfterDisc', priceAfterDisc);
                         soRecord.setCurrentSublistValue({
                             sublistId: 'item',
                             fieldId: 'rate',
-                            value: Number(itemObj.price)
+                            value: Number(Number(itemObj.price) - Number(itemObj.discountAmt || 0.00))
                         });
                         cost = _mross.getItemVendorPreferredCost(item);
                         soRecord.setCurrentSublistValue({
