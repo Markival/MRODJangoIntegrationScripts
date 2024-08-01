@@ -5,9 +5,9 @@
  * @version     1.0
  */
 
-define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log'],
+define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log', 'N/runtime'],
 
-    function (record, error, search, format, log) {
+    function (record, error, search, format, log, runtime) {
         /**
          * Post function for http request
          * @param {*} params - Params for Http objects
