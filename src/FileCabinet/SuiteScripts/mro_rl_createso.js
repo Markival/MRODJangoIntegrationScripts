@@ -154,6 +154,9 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                  } */
 
                 // check if the item exists
+
+                var shippingMethodId = '';
+                var shippingMethodIdline0 = '';
                 var itemsNotFound = [];
                 for (var i = 0; i < params.items.length; i++) {
                     var itemObj = params.items[i];
@@ -225,6 +228,49 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                         });
 
 
+                        var shippingMethod = itemObj.shippingMethod;
+                        log.debug('shippingMethod', shippingMethod);
+                        if (!isNullOrEmpty(shippingMethod)) {
+                            var shipitemSearchObj = search.create({
+                                type: "shipitem",
+                                filters:
+                                    [
+                                        ["displayname", "is", shippingMethod]
+                                    ],
+                                columns:
+                                    [
+                                        "internalid"
+                                    ]
+                            });
+                            var searchResultCount = shipitemSearchObj.runPaged().count;
+                            log.debug("shipitemSearchObj result count", searchResultCount);
+                            if (searchResultCount > 0) {
+                                shipitemSearchObj.run().each(function (result) {
+                                    shippingMethodId = result.getValue({ name: 'internalid' });
+                                    return false;
+                                });
+                            }
+                            log.debug('shippingMethodId', shippingMethodId);
+                            if (i == 0) {
+                                shippingMethodIdline0 = shippingMethodId;
+                            }
+                            soRecord.setCurrentSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'custcol_mrk_shipping_method',
+                                value: shippingMethodId
+                            });
+                        }
+
+                        soRecord.setCurrentSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'custcol_mrk_shipping_carrier',
+                            value: itemObj.shippingCarrier
+                        });
+                        soRecord.setCurrentSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'custcol_mrk_shipping_acc_number',
+                            value: itemObj.shippingAccountNumber
+                        });
                         soRecord.commitLine({
                             sublistId: 'item'
                         });
@@ -236,6 +282,22 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                     return { success: false, message: 'Following Items not found!' + ' ' + JSON.stringify(itemsNotFound) }
                 }
                 //TODO: else if itemsNotFound.length > 0, return message with items not found
+
+                // Set Shipping OOB fields
+                var itemObjLine0 = params.items[0];
+                log.debug('itemObjLine0', itemObjLine0);
+
+                if (!isNullOrEmpty(itemObjLine0.shippingCarrier)) {
+                    soRecord.setValue('custbody_mrk_shipping_carrier', itemObjLine0.shippingCarrier);
+                }
+                if (!isNullOrEmpty(shippingMethodIdline0)) {
+                    log.debug('shippingMethodIdline0', shippingMethodIdline0);
+                    soRecord.setValue('custbody_mrk_shipping_method', shippingMethodIdline0);
+                }
+                if (!isNullOrEmpty(itemObjLine0.shippingAccountNumber)) {
+                    soRecord.setValue('custbody_mrk_shipping_acc_number', itemObjLine0.shippingAccountNumber);
+                }
+
 
                 // Set shipping address
                 var shippingAddressId = null;
@@ -366,7 +428,7 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
 
                 if (addr1 == address.address1 && country == address.country &&
                     city == address.city && state == address.state && zip == address.postalCode) {
-                        log.debug('address found', i);
+                    log.debug('address found', i);
                     return i;
                 }
             }
