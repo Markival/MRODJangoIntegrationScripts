@@ -95,8 +95,8 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                 }
 
                 // TODO: Set Sales Rep from Customer - Sales Rep
-                var custSalesRep = custRecord.getValue('salesrep');
-                soRecord.setValue('salesrep', custSalesRep);
+                // var custSalesRep = custRecord.getValue('salesrep');
+                // soRecord.setValue('salesrep', custSalesRep);
 
                 // Set location to Dropship
                 soRecord.setValue('location', 4); // Dropship Location
