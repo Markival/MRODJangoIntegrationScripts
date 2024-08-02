@@ -99,7 +99,7 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                 // soRecord.setValue('salesrep', custSalesRep);
 
                 // Set location to Dropship
-                soRecord.setValue('location', 4); // Dropship Location
+                //  soRecord.setValue('location', 4); // Dropship Location
                 soRecord.setValue('cseg1', 4); // Financial Location - eCommerce
 
 
@@ -193,17 +193,27 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                         });
                         var priceAfterDisc = Number(Number(itemObj.price) - Number(itemObj.discountAmt || 0.00));
                         log.debug('priceAfterDisc', priceAfterDisc);
+
+                        //cost = _mross.getItemVendorPreferredCost(item);
+                        soRecord.setCurrentSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'price', // pricelevel
+                            value: -1 // Custom
+                        });
+                        
+                        soRecord.setCurrentSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'custcol_mrk_ecom_cost',
+                            value: Number(itemObj.cost)
+                        });
+
+                       
                         soRecord.setCurrentSublistValue({
                             sublistId: 'item',
                             fieldId: 'rate',
                             value: Number(Number(itemObj.price) - Number(itemObj.discountAmt || 0.00))
                         });
-                        cost = _mross.getItemVendorPreferredCost(item);
-                        soRecord.setCurrentSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'custcol_kd_cost_price',
-                            value: Number(cost)
-                        });
+
                         if (!isNullOrEmpty(itemObj.discountAmt)) {
                             soRecord.setCurrentSublistValue({
                                 sublistId: 'item',
