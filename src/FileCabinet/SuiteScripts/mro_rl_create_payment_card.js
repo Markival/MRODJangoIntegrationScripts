@@ -5,9 +5,9 @@
  * @version     1.0
  */
 
-define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log'],
+define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log', 'N/runtime'],
 
-    function (record, error, search, format, log) {
+    function (record, error, search, format, log, runtime) {
 
         var fieldNames = {
             //[{"value":"13","text":"ACH"},{"value":"2","text":"General Token"},{"value":"1","text":"Payment Card"},{"value":"3","text":"Payment Card Token"}]
@@ -29,6 +29,7 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log'],
             "cardType": 'cardtype',
             "cardExpirationDate": 'cardexpirationdate'
         };
+        var intPaymentMethodId = '14';
 
         var tokenFamilies = {
             '8Quanta': '18',
@@ -79,10 +80,11 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log'],
 
         /**
          * Get PaymentCardToken Record by Id
-         * @param {*} context 
-         * @returns 
+         * @param {*} context
+         * @returns
          */
         function doGet(context) {
+            addJsonToRecord(context, 'GET', 'PAYMENT CARD TOKEN');
             var result = {};
             try {
                 doValidation([context.id], ['id'], 'GET');
@@ -112,10 +114,23 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log'],
          * @returns results
          */
         function doPost(context) {
+            addJsonToRecord(context, 'POST', 'PAYMENT CARD TOKEN');
             var result = null;
             try {
                 doValidation([context.token, context.customer], ['token', 'customer'], 'GET');
+
+                if (!isNullOrEmpty(context.externalid)) {
+                    validateSalesOrder(context.externalid);
+                }
+
+                if (!isNullOrEmpty(context.cardType)) {
+                    context.cardType = validateCardType(context.cardType);
+                }
+                if (!isNullOrEmpty(context.cardIssuerID)) {
+                    fieldNames.cardIssuerID = isNumericOnly(context.cardIssuerID) ? 'cardissueridnumber' : 'cardnameoncard';
+                }
                 var pcRec = createPaymentCardToken(context);
+
 
                 result = {
                     success: true,
@@ -124,6 +139,8 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log'],
                         id: pcRec.id,
                     }
                 };
+
+                linkPaymentToSalesOrder(context.externalid, pcRec.id, context.customer, context);
             } catch (err) {
                 log.debug({ title: 'POST', details: JSON.stringify(err) });
                 result = {
@@ -138,10 +155,11 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log'],
 
         /**
          * Delete PaymentCardToken Record by id
-         * @param {*} context 
-         * @returns 
+         * @param {*} context
+         * @returns
          */
         function doDelete(context) {
+            addJsonToRecord(context, 'DELETE', 'PAYMENT CARD TOKEN');
             var result = null;
             try {
                 doValidation([context.id], ['id'], 'DELETE');
@@ -165,13 +183,21 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log'],
 
         /**
          * Update PaymentCardToken Record
-         * @param {*} context 
-         * @returns 
+         * @param {*} context
+         * @returns
          */
         function doPut(context) {
+            addJsonToRecord(context, 'PUT', 'PAYMENT CARD TOKEN');
+
             var result = null;
             try {
                 doValidation([context.id], ['id'], 'PUT');
+                if (!isNullOrEmpty(context.cardType)) {
+                    context.cardType = validateCardType(context.cardType);
+                }
+                if (!isNullOrEmpty(context.cardIssuerID)) {
+                    fieldNames.cardIssuerID = isNumericOnly(context.cardIssuerID) ? 'cardissueridnumber' : 'cardnameoncard';
+                }
                 var objRecord = record.load({
                     type: record.Type.PAYMENT_CARD,
                     id: context.id
@@ -220,9 +246,81 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log'],
             return result;
         }
 
+        function getSalesOrder(salesOrderExternalId) {
+            var intOrderId = null;
+            var objSearch = search.create({
+                type: search.Type.SALES_ORDER,
+                filters: [
+                    ['type', 'anyof', 'SalesOrd'],
+                    'AND',
+                    ['mainline', 'is', 'T'],
+                    'AND',
+                    ['externalid', 'anyof', salesOrderExternalId]
+                ]
+            });
+            if (objSearch.runPaged().count > 0) {
+                objSearch.run().getRange({ start: 0, end: 1 }).forEach(function (result) {
+                    intOrderId = result.id;
+                });
+            }
+            return intOrderId;
+        }
+
+        function linkPaymentToSalesOrder(salesOrderExternalId, paymentTokenId, customer, context) {
+            if (!salesOrderExternalId) {
+                throw error.create({
+                    name: 'MISSING_REQ_ARG',
+                    message: 'Missing a required argument: [salesOrderExternalId] for method: linkPaymentToSalesOrder'
+                });
+            } else {
+                var intSalesOrderId = getSalesOrder(salesOrderExternalId);
+
+                if (!!intSalesOrderId) {
+                    if (orderAndCustomerMatch(salesOrderExternalId, customer)) {
+                        record.submitFields({
+                            type: record.Type.SALES_ORDER,
+                            id: intSalesOrderId,
+                            values: {
+                                custbody_payment_card_token: paymentTokenId,
+                                custbody_mrk_payload: JSON.stringify(context)
+                            }
+                        })
+                        return true;
+                    } else {
+                        throw error.create({
+                            name: 'ORDER_NOT_FOUND',
+                            message: 'Order ' + salesOrderExternalId + ' does not match customer ' + customer
+                        });
+                    }
+                } else {
+                    throw error.create({
+                        name: 'ORDER_NOT_FOUND',
+                        message: 'Order does not exist for external ID: ' + salesOrderExternalId
+                    });
+                }
+
+            }
+        }
+
+        function orderAndCustomerMatch (salesOrderExternalId, customer) {
+            var isMatch = false;
+            var objSearch = search.create({
+                type: search.Type.SALES_ORDER,
+                filters: [
+                    ['name', 'anyof', customer],
+                    'AND',
+                    ['mainline', 'is', 'T'],
+                    'AND',
+                    ['externalid', 'anyof', salesOrderExternalId]
+                ]
+            });
+            if (objSearch.runPaged().count > 0) isMatch = true;
+            return isMatch;
+        }
+
         /**
          * Create or update PaymentCardToken Record
-         * @param {*} params 
+         * @param {*} params
          * @returns N/PaymentCardToken Record
          */
         function createPaymentCardToken(params) {
@@ -231,9 +329,8 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log'],
                 isDynamic: true
             });
             // objRecord.setValue('instrumenttype', 3); //Payment Card Token
-            objRecord.setValue('paymentmethod', 14); //Payment method
+            objRecord.setValue('paymentmethod', intPaymentMethodId); //Payment method
             objRecord.setValue('tokenfamily', 1); //Cybersource
-            
             var exceptParams = ['tokenExpirationDate', 'cardExpirationDate', 'cardBrand'];
             for (var fldName in params) {
                 if (params.hasOwnProperty(fldName) && !isNullOrEmpty(fieldNames[fldName]) && exceptParams.indexOf(fldName) == -1) {
@@ -255,7 +352,7 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log'],
                     objRecord.setValue('cardexpirationdate', date);
                 }
             }
-            
+
             if (!isNullOrEmpty(params['cardBrand'])) {
                 objRecord.setValue('cardbrand', cardBrands[params['cardBrand']]);
             }
@@ -278,8 +375,8 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log'],
 
         /**
          * Get all of datas for Search Object
-         * 
-         * @param {*} searchObj 
+         *
+         * @param {*} searchObj
          */
         function getResults(searchObj) {
             var results = [];
@@ -304,12 +401,61 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log'],
 
         /**
          * Check Null or Empty
-         * 
-         * @param {*} val 
+         *
+         * @param {*} val
          */
         function isNullOrEmpty(val) {
 
             return (val == null || val == '' || val == undefined);
+        }
+
+        function addJsonToRecord(jsonData, type, recordType) {
+            //add try catch block
+            try {
+                var logLevel = runtime.getCurrentScript().logLevel;
+                log.debug('logLevel', logLevel);
+                if(logLevel === 'DEBUG') {
+                    var requestsRecord = record.create({
+                        type: 'customrecord_mrk_json_incoming_requests'
+                    });
+                    requestsRecord.setValue('custrecord_mrk_json_request', JSON.stringify(jsonData));
+                    requestsRecord.setValue('custrecord_mrk_request_type', type);
+                    requestsRecord.setValue('custrecord_mrk_request_record_type', recordType);
+                    requestsRecord.save({ignoreMandatoryFields: true});
+                }
+            }
+            catch(e) {
+                log.error('Error', e);
+            }
+        }
+
+        function validateCardType(cardType) {
+            var nsCardType = null;
+            var cardTypeLowerCase = cardType.toLowerCase();
+
+            if (cardTypeLowerCase.indexOf('debit') > -1) {
+                nsCardType = 'DEBIT';
+            } else if (cardTypeLowerCase.indexOf('credit') > -1) {
+                nsCardType = 'CREDIT';
+            }
+            return nsCardType;
+        }
+
+        function validateSalesOrder(salesOrderId) {
+            var isExisting = false;
+            if (!isNullOrEmpty(salesOrderId) && getSalesOrder(salesOrderId)) isExisting = true;
+            
+            if (!isExisting) {
+                throw error.create({
+                    name: 'MISSING_REQ_ARG',
+                    message: 'Missing a required argument: salesOrderId for method: validateSalesOrder'
+                });
+            } 
+            return isExisting;
+        }
+
+        function isNumericOnly(value) {
+            return !isNaN(value) && !isNaN(parseFloat(value));
         }
 
         return {
@@ -318,5 +464,5 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log'],
             delete: doDelete,
             put: doPut,
         };
-
-    });
+    }
+);

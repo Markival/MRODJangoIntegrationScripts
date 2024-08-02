@@ -1,0 +1,36 @@
+<customlist scriptid="customlist_mrk_shipping_carriers">
+  <description></description>
+  <isinactive>F</isinactive>
+  <isordered>T</isordered>
+  <name>Shipping Carriers</name>
+  <customvalues>
+    <customvalue scriptid="val_17779650_5824946_sb1_330">
+      <isinactive>F</isinactive>
+      <value>UPS</value>
+    </customvalue>
+    <customvalue scriptid="val_17779651_5824946_sb1_846">
+      <isinactive>F</isinactive>
+      <value>TNT</value>
+    </customvalue>
+    <customvalue scriptid="val_17779652_5824946_sb1_694">
+      <isinactive>F</isinactive>
+      <value>No API</value>
+    </customvalue>
+    <customvalue scriptid="val_17779653_5824946_sb1_751">
+      <isinactive>F</isinactive>
+      <value>MRO</value>
+    </customvalue>
+    <customvalue scriptid="val_17779654_5824946_sb1_139">
+      <isinactive>F</isinactive>
+      <value>DHL</value>
+    </customvalue>
+    <customvalue scriptid="val_17779655_5824946_sb1_707">
+      <isinactive>F</isinactive>
+      <value>FedEx</value>
+    </customvalue>
+    <customvalue scriptid="val_17779658_5824946_sb1_391">
+      <isinactive>F</isinactive>
+      <value>Amazon</value>
+    </customvalue>
+  </customvalues>
+</customlist>
