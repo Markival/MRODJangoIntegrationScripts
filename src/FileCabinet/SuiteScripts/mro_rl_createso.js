@@ -26,6 +26,7 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
         }
 
         var custRecord = null;
+
         function doPost(params) {
             log.debug('params', params);
             addJsonToRecord(params, 'POST', 'SALESORDER');
@@ -59,7 +60,7 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                     };
                 }
             } catch (err) {
-                log.debug({ title: 'POST', details: JSON.stringify(err) });
+                log.debug({title: 'POST', details: JSON.stringify(err)});
                 return {
                     success: false,
                     message: err.message
@@ -71,13 +72,13 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
             }
 
             if (isNullOrEmpty(custRecord)) {
-                return { success: false, message: 'Customer record not exist!' };
+                return {success: false, message: 'Customer record not exist!'};
             }
 
             var soId = null;
             try {
                 // Get Sales Order Record
-                var soRecord = record.create({ type: record.Type.SALES_ORDER, isDynamic: true });
+                var soRecord = record.create({type: record.Type.SALES_ORDER, isDynamic: true});
                 var itemTotalPrice = 0;
 
                 soRecord.setValue('customform', 229); // MRO - Sales Order
@@ -142,10 +143,11 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                              */
 
                 // Create line items in new order
-                var lineCount = soRecord.getLineCount({ sublistId: 'item' });
+                var lineCount = soRecord.getLineCount({sublistId: 'item'});
+                var vendors = getVendors(params);
 
                 for (var i = 0; i < lineCount; i++) {
-                    soRecord.removeLine({ sublistId: 'item', line: 0 });
+                    soRecord.removeLine({sublistId: 'item', line: 0});
                 }
 
                 /* for (var i = 0; i < params.items.length; i++) {
@@ -167,13 +169,32 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                     log.debug('item', item);
 
                     if (item != null) {
-                        soRecord.selectNewLine({ sublistId: 'item' });
+                        soRecord.selectNewLine({sublistId: 'item'});
 
                         soRecord.setCurrentSublistValue({
                             sublistId: 'item',
                             fieldId: 'item',
                             value: Number(item.id)
                         });
+
+                        //add povendor
+                        if (!isNullOrEmpty(itemObj.vendorId)) {
+                            var vendorId = vendors.hasOwnProperty(itemObj.vendorId) ? vendors[itemObj.vendorId] : '';
+                            if (!isNullOrEmpty(vendorId)) {
+                                soRecord.setCurrentSublistValue({
+                                    sublistId: 'item',
+                                    fieldId: 'povendor',
+                                    value: vendorId
+                                });
+                                //set createpo field to Dropship
+                                soRecord.setCurrentSublistValue({
+                                    sublistId: 'item',
+                                    fieldId: 'createpo',
+                                    value: 'DropShip'
+                                });
+                            }
+
+                        }
                         //add location
                         soRecord.setCurrentSublistValue({
                             sublistId: 'item',
@@ -200,14 +221,14 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                             fieldId: 'price', // pricelevel
                             value: -1 // Custom
                         });
-                        
+
                         soRecord.setCurrentSublistValue({
                             sublistId: 'item',
                             fieldId: 'custcol_mrk_ecom_cost',
                             value: Number(itemObj.cost)
                         });
 
-                       
+
                         soRecord.setCurrentSublistValue({
                             sublistId: 'item',
                             fieldId: 'rate',
@@ -256,7 +277,7 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                             log.debug("shipitemSearchObj result count", searchResultCount);
                             if (searchResultCount > 0) {
                                 shipitemSearchObj.run().each(function (result) {
-                                    shippingMethodId = result.getValue({ name: 'internalid' });
+                                    shippingMethodId = result.getValue({name: 'internalid'});
                                     return false;
                                 });
                             }
@@ -285,11 +306,11 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                             sublistId: 'item'
                         });
                     } else {
-                        itemsNotFound.push({ 'id': itemObj.id, 'externalId': itemObj.externalId });
+                        itemsNotFound.push({'id': itemObj.id, 'externalId': itemObj.externalId});
                     }
                 }
                 if (itemsNotFound.length == params.items.length) {
-                    return { success: false, message: 'Following Items not found!' + ' ' + JSON.stringify(itemsNotFound) }
+                    return {success: false, message: 'Following Items not found!' + ' ' + JSON.stringify(itemsNotFound)}
                 }
                 //TODO: else if itemsNotFound.length > 0, return message with items not found
 
@@ -343,7 +364,7 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                     }
                 }
 
-                soId = soRecord.save({/*enableSourcing: true,*/ ignoreMandatoryFields: true });
+                soId = soRecord.save({/*enableSourcing: true,*/ ignoreMandatoryFields: true});
                 //declare result object
                 var result = {};
                 result = {
@@ -470,6 +491,7 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
             log.debug('addressId', addressId);
             return addressId;
         }
+
         /**
          * Add address to customer record
          * @param {*} custRecord
@@ -551,7 +573,7 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
             var pagedData = searchObj.runPaged();
             pagedData.pageRanges.forEach(function (pageRange) {
 
-                var curPage = pagedData.fetch({ index: pageRange.index });
+                var curPage = pagedData.fetch({index: pageRange.index});
 
                 curPage.data.forEach(function (result) {
                     resultArray.push(result);
@@ -619,7 +641,6 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
         }
 
 
-
         /**
          * Format Dateobject to M/d/yy h:mm a
          *
@@ -642,7 +663,7 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
          */
         function getCurrentDate() {
             var dateNow = new Date();
-            var tempDateNowX = format.format({ value: dateNow, type: format.Type.DATETIME });
+            var tempDateNowX = format.format({value: dateNow, type: format.Type.DATETIME});
             var curDate = new Date(tempDateNowX);
             return curDate;
         }
@@ -655,6 +676,7 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
         function isNullOrEmpty(val) {
             return (val == null || val == '' || val == undefined);
         }
+
         function addJsonToRecord(jsonData, type, recordType) {
             //add try catch block
             try {
@@ -667,12 +689,60 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                     requestsRecord.setValue('custrecord_mrk_json_request', JSON.stringify(jsonData));
                     requestsRecord.setValue('custrecord_mrk_request_type', type);
                     requestsRecord.setValue('custrecord_mrk_request_record_type', recordType);
-                    requestsRecord.save({ ignoreMandatoryFields: true });
+                    requestsRecord.save({ignoreMandatoryFields: true});
                 }
-            }
-            catch (e) {
+            } catch (e) {
                 log.error('Error', e);
             }
+        }
+
+        function getVendors(params) {
+            var vendors = {};
+            try {
+                var itemsArr = params.items;
+                var vendorIds = itemsArr.map(function (item) {
+                    return item.vendorId;
+                }).filter(function (value) {
+                    return value != null || value !== '';
+                });
+                log.debug('vendorIds', vendorIds);
+                //create search for vendors. filter entityid by vendorIds
+                if (vendorIds.length > 0) {
+                    var conditions = vendorIds.map(function (vendorId) {
+                        return ['entityid', 'is', vendorId];
+                    });
+// Flatten the conditions array and insert "OR" between each condition
+                    var filterArray = [];
+                    conditions.forEach(function (condition, index) {
+                        if (index > 0) {
+                            filterArray.push("OR");
+                        }
+                        filterArray.push(condition);
+                    });
+                    log.debug('filterArray', filterArray);
+
+                    var vendorSearch = search.create({
+                        type: search.Type.VENDOR,
+                        columns: ['entityid'],
+                        filters: [
+                            filterArray
+                        ]
+                    });
+                    vendorSearch.run().each(function (result) {
+                        vendors[result.getValue('entityid')] = result.id
+                        return true;
+                    });
+                }
+
+            } catch (e) {
+                log.error('Error', e);
+
+            } finally {
+                log.debug('vendors', vendors);
+                return vendors;
+
+            }
+
         }
 
         return {
