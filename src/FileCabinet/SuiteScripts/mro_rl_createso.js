@@ -1,14 +1,14 @@
 /**
- * @NApiVersion 2.x
+ * @NApiVersion 2.1
  * @NScriptType Restlet
  * @author      Milan
  * @version     1.0
  * @description This script is creating sales order
  */
 
-define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/config', 'N/url', 'SuiteScripts/Modules/mro/mro_serverside', 'N/runtime'],
+define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/config', 'N/url', 'SuiteScripts/Modules/mro/mro_serverside', 'N/runtime', 'N/query'],
 
-    function (record, error, search, email, format, log, config, url, _mross, runtime) {
+    function (record, error, search, email, format, log, config, url, _mross, runtime, queryMod) {
         /**
          * Post functions
          * @param {*} params
@@ -145,6 +145,7 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                 // Create line items in new order
                 var lineCount = soRecord.getLineCount({sublistId: 'item'});
                 var vendors = getVendors(params);
+                //  var itemsBaseUOM = getItemsBaseUnit(params); Note: Already item record is being loaded and we can get base unit from item record. We can use this in case of any governance issues.
 
                 for (var i = 0; i < lineCount; i++) {
                     soRecord.removeLine({sublistId: 'item', line: 0});
@@ -176,6 +177,15 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                             fieldId: 'item',
                             value: Number(item.id)
                         });
+
+                        //set units
+                        log.debug('baseunit', item.getValue('baseunit'));
+                        soRecord.setCurrentSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'units',
+                            value: item.getValue('baseunit')
+                        });
+
 
                         //add povendor
                         if (!isNullOrEmpty(itemObj.vendorId)) {
@@ -740,6 +750,50 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
             } finally {
                 log.debug('vendors', vendors);
                 return vendors;
+
+            }
+
+        }
+
+        function getItemsBaseUnit(params) {
+            var itemsBaseUnits = {};
+            try {
+                var itemsArr = params.items;
+                var itemIds = itemsArr.map(function (item) {
+                    return item.id;
+                }).filter(function (value) {
+                    return value != null || value !== '';
+                });
+                log.debug('itemIds', itemIds);
+                //create search for vendors. filter entityid by vendorIds
+                if (itemIds.length > 0) {
+                    let sql = `SELECT 
+                                      Item.id itemId, 
+                                      UnitsTypeUom.internalid as baseUnitId 
+                                    FROM 
+                                      Item 
+                                      JOIN UnitsType on Item.unitstype = unitsType.id 
+                                      JOIN UnitsTypeUom on UnitsType.id = UnitsTypeUom.unitstype 
+                                    WHERE 
+                                      Item.id in (${itemIds.join(',')})
+                                      and UnitsTypeUom.baseUnit = 'T'
+                                    `;
+                    log.debug('sql', sql);
+                    let queryResultSet = queryMod.runSuiteQL({
+                        query: sql
+                    }).asMappedResults();
+                    queryResultSet.forEach(function (result) {
+                        itemsBaseUnits[result.itemid.toString()] = result.baseUnitId;
+                    });
+
+                }
+
+            } catch (e) {
+                log.error('Error', e);
+
+            } finally {
+                log.debug('vendors', itemsBaseUnits);
+                return itemsBaseUnits;
 
             }
 
