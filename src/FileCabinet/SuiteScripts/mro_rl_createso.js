@@ -144,7 +144,9 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
 
                 // Create line items in new order
                 var lineCount = soRecord.getLineCount({sublistId: 'item'});
-                var vendors = getVendors(params);
+               //TODO:Uncomment below get vendor code after testing
+                //var vendors = getVendors(params);
+
                 //  var itemsBaseUOM = getItemsBaseUnit(params); Note: Already item record is being loaded and we can get base unit from item record. We can use this in case of any governance issues.
 
                 for (var i = 0; i < lineCount; i++) {
@@ -188,6 +190,7 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
 
 
                         //add povendor
+                        /*
                         if (!isNullOrEmpty(itemObj.vendorId)) {
                             var vendorId = vendors.hasOwnProperty(itemObj.vendorId) ? vendors[itemObj.vendorId] : '';
                             if (!isNullOrEmpty(vendorId)) {
@@ -205,6 +208,10 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                             }
 
                         }
+
+                         */
+
+
                         //add location
                         soRecord.setCurrentSublistValue({
                             sublistId: 'item',
