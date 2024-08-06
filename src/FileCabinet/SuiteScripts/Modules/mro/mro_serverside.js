@@ -15,18 +15,18 @@ define(['N/record', 'N/search', 'N/log', 'N/crypto', 'N/encode', 'N/cache'], fun
             scope: _cache.Scope.PROTECTED
         });
         var search = _search.create({
-            type: "customrecord_mro_brand",
-            columns: [
-                "internalid",
-                "externalid",
-                "name",
-                "custrecord_mro_brand_logoimage",
-                "custrecord_mro_brand_techsprt_phone",
-                // "custrecord_mro_brand_detaileddescription",
-                "custrecord_mro_brand_warrantyinformation",
-                "custrecord_mro_brand_returnpolicy"
-            ]
-        }
+                type: "customrecord_mro_brand",
+                columns: [
+                    "internalid",
+                    "externalid",
+                    "name",
+                    "custrecord_mro_brand_logoimage",
+                    "custrecord_mro_brand_techsprt_phone",
+                    // "custrecord_mro_brand_detaileddescription",
+                    "custrecord_mro_brand_warrantyinformation",
+                    "custrecord_mro_brand_returnpolicy"
+                ]
+            }
         );
         search.run().each(function (result) {
             var value = {
@@ -39,7 +39,7 @@ define(['N/record', 'N/search', 'N/log', 'N/crypto', 'N/encode', 'N/cache'], fun
                 "warranty_information": result.getValue("custrecord_mro_brand_warrantyinformation"),
                 "return_policy": result.getValue("custrecord_mro_brand_returnpolicy")
             };
-            _log.audit({ title: 'brandLoader', details: value });
+            _log.audit({title: 'brandLoader', details: value});
 
             cache.put({
                 key: result.getValue("internalid"),
@@ -57,16 +57,16 @@ define(['N/record', 'N/search', 'N/log', 'N/crypto', 'N/encode', 'N/cache'], fun
             scope: _cache.Scope.PROTECTED
         });
         var search = _search.create({
-            type: "customrecord_mro_prod_category",
-            columns: [
-                "internalid",
-                "externalid",
-                "name",
-                "custrecord_mro_prod_category_prodcount",
-                "custrecord_mro_prod_category_image",
-                "custrecord_mro_prod_category_leaf",
-            ]
-        }
+                type: "customrecord_mro_prod_category",
+                columns: [
+                    "internalid",
+                    "externalid",
+                    "name",
+                    "custrecord_mro_prod_category_prodcount",
+                    "custrecord_mro_prod_category_image",
+                    "custrecord_mro_prod_category_leaf",
+                ]
+            }
         );
         search.run().each(function (result) {
             var value = {
@@ -77,7 +77,7 @@ define(['N/record', 'N/search', 'N/log', 'N/crypto', 'N/encode', 'N/cache'], fun
                 "leaf": result.getValue("custrecord_mro_prod_category_leaf"),
                 "product_count": result.getValue("custrecord_mro_prod_category_prodcount")
             };
-            _log.audit({ title: 'categoryLoader', details: value });
+            _log.audit({title: 'categoryLoader', details: value});
             cache.put({
                 key: result.getValue("internalid"),
                 value: value,
@@ -94,15 +94,15 @@ define(['N/record', 'N/search', 'N/log', 'N/crypto', 'N/encode', 'N/cache'], fun
             name: "uom_cache",
             scope: _cache.Scope.PROTECTED
         });
-        var search = _search.create({ type: "unitstype", columns: ["internalid"] });
+        var search = _search.create({type: "unitstype", columns: ["internalid"]});
         search.run().each(function (result) {
 
-            var unittype = _record.load({ type: "unitstype", id: result.id });
-            var lines = unittype.getLineCount({ sublistId: sublist });
+            var unittype = _record.load({type: "unitstype", id: result.id});
+            var lines = unittype.getLineCount({sublistId: sublist});
 
             for (var line = 0; line < lines; line++) {
-                var key = unittype.getSublistValue({ sublistId: sublist, fieldId: "internalid", line: line });
-                var value = unittype.getSublistValue({ sublistId: sublist, fieldId: "abbreviation", line: line })
+                var key = unittype.getSublistValue({sublistId: sublist, fieldId: "internalid", line: line});
+                var value = unittype.getSublistValue({sublistId: sublist, fieldId: "abbreviation", line: line})
 
                 cache.put({
                     key: key,
@@ -156,9 +156,9 @@ define(['N/record', 'N/search', 'N/log', 'N/crypto', 'N/encode', 'N/cache'], fun
     }
 
     function create_hash(toHash) {
-        var hashObj = _crypto.createHash({ algorithm: _crypto.HashAlg.SHA256 });
-        hashObj.update({ input: toHash });
-        return hashObj.digest({ outputEncoding: _encode.Encoding.HEX });
+        var hashObj = _crypto.createHash({algorithm: _crypto.HashAlg.SHA256});
+        hashObj.update({input: toHash});
+        return hashObj.digest({outputEncoding: _encode.Encoding.HEX});
     }
 
     function concat_searchresults(results) {
@@ -191,7 +191,16 @@ define(['N/record', 'N/search', 'N/log', 'N/crypto', 'N/encode', 'N/cache'], fun
      */
     function load_item(internalId, externalId) {
         var item_id;
-        _log.audit({ title: 'internalId', details: internalId });
+        _log.audit({title: 'internalId', details: internalId});
+        if (!isNullOrEmpty(internalId)) {
+            _log.audit({title: 'internalId', details: internalId});
+            item = _record.load({type: 'inventoryitem', id: internalId, isDynamic: false});
+            _log.audit({title: 'item', details: item});
+            if (!isNullOrEmpty(item)) {
+                return item;
+            }
+        }
+
         if (!isNullOrEmpty(externalId)) {
             item = get_item_by_externalid(externalId);
             if (!isNullOrEmpty(item)) {
@@ -199,16 +208,10 @@ define(['N/record', 'N/search', 'N/log', 'N/crypto', 'N/encode', 'N/cache'], fun
             }
 
         }
-        if (!isNullOrEmpty(internalId)) {
-            _log.audit({ title: 'internalId', details: internalId });
-            item = _record.load({ type: 'inventoryitem', id: internalId, isDynamic: false });
-            _log.audit({ title: 'item', details: item });
-            if (!isNullOrEmpty(item)) {
-                return item;
-            }
-        }
+
         return null;
     }
+
     function get_item_by_externalid(externalid) {
         var nsrecord;
         var search = _search.create({
@@ -222,10 +225,11 @@ define(['N/record', 'N/search', 'N/log', 'N/crypto', 'N/encode', 'N/cache'], fun
         if (search.runPaged().count == 1) {
             var results = search.run();
             var subset = results.getRange(0, 1);
-            nsrecord = _record.load({ type: 'inventoryitem', id: subset[0].id });
+            nsrecord = _record.load({type: 'inventoryitem', id: subset[0].id});
         }
         return nsrecord;
     }
+
     /*
      * Updates a suppliers cost for a item
      */
@@ -236,25 +240,29 @@ define(['N/record', 'N/search', 'N/log', 'N/crypto', 'N/encode', 'N/cache'], fun
         /*
          * sublist "itemvendor" fields: ["vendor", "vendorcurrencyid", "vendorcode", "subsidiary", "purchaseprice", "schedule", "preferredvendor", "_id", "_sequence"]
          */
-        var sublist_line = item.findSublistLineWithValue({ sublistId: sublist, fieldId: "vendor", value: vendor });
+        var sublist_line = item.findSublistLineWithValue({sublistId: sublist, fieldId: "vendor", value: vendor});
         if (sublist_line >= 0) {
-            item.setSublistValue({ sublistId: sublist, line: line, fieldId: "purchaseprice", value: cost });
+            item.setSublistValue({sublistId: sublist, line: line, fieldId: "purchaseprice", value: cost});
+        } else {
+            var new_line_number = record.selectNewLine({sublistId: sublist});
+            item.setSublistValue({
+                sublistId: sublist,
+                line: line,
+                fieldId: "vendorcurrencyid",
+                value: vendorcurrencyid
+            });
+            item.setSublistValue({sublistId: sublist, line: line, fieldId: "subsidiary", value: subsidiary});
+            item.setSublistValue({sublistId: sublist, line: line, fieldId: "vendor", value: vendor});
+            item.setSublistValue({sublistId: sublist, line: line, fieldId: "purchaseprice", value: cost});
+            item.setSublistValue({sublistId: sublist, line: line, fieldId: "preferredvendor", value: preferred});
         }
-        else {
-            var new_line_number = record.selectNewLine({ sublistId: sublist });
-            item.setSublistValue({ sublistId: sublist, line: line, fieldId: "vendorcurrencyid", value: vendorcurrencyid });
-            item.setSublistValue({ sublistId: sublist, line: line, fieldId: "subsidiary", value: subsidiary });
-            item.setSublistValue({ sublistId: sublist, line: line, fieldId: "vendor", value: vendor });
-            item.setSublistValue({ sublistId: sublist, line: line, fieldId: "purchaseprice", value: cost });
-            item.setSublistValue({ sublistId: sublist, line: line, fieldId: "preferredvendor", value: preferred });
-        }
-        item.commitLine({ sublistId: sublist });
+        item.commitLine({sublistId: sublist});
     }
 
     function updateItemPriceLevelPrice(item, price, pricelevel_id) {
         var sublist = "price";
         var field = "price";
-        var line = item.findSublistLineWithValue({ sublistId: sublist, fieldId: "pricelevel", value: pricelevel_id });
+        var line = item.findSublistLineWithValue({sublistId: sublist, fieldId: "pricelevel", value: pricelevel_id});
         if (line >= 0 && price >= 0) {
             item.setMatrixSublistValue({
                 sublistId: sublist,
@@ -274,10 +282,10 @@ define(['N/record', 'N/search', 'N/log', 'N/crypto', 'N/encode', 'N/cache'], fun
      */
     function getItemVendorPreferredCost(item) {
         var sublist = "itemvendor";
-        var lines = item.getLineCount({ sublistId: sublist });
+        var lines = item.getLineCount({sublistId: sublist});
         for (var line = 0; line < lines; line++) {
-            if (item.getSublistValue({ sublistId: sublist, fieldId: "preferredvendor", line: line })) {
-                return item.getSublistValue({ sublistId: sublist, fieldId: "purchaseprice", line: line });
+            if (item.getSublistValue({sublistId: sublist, fieldId: "preferredvendor", line: line})) {
+                return item.getSublistValue({sublistId: sublist, fieldId: "purchaseprice", line: line});
             }
         }
         return -1;
@@ -289,15 +297,15 @@ define(['N/record', 'N/search', 'N/log', 'N/crypto', 'N/encode', 'N/cache'], fun
     function getItemPriceLevelPrice(item, pricelevel_id) {
         var sublist = "price";
         var field = "price";
-        var line = item.findSublistLineWithValue({ sublistId: sublist, fieldId: "pricelevel", value: pricelevel_id });
+        var line = item.findSublistLineWithValue({sublistId: sublist, fieldId: "pricelevel", value: pricelevel_id});
         if (line >= 0) {
-            return item.getMatrixSublistValue({ sublistId: "price", fieldId: "price", line: line, column: 0 });
+            return item.getMatrixSublistValue({sublistId: "price", fieldId: "price", line: line, column: 0});
         }
         return -1;
     }
 
     function getItemDefaultPriceMatrixLevel(item) {
-        var pricematrixgroup_id = item.getValue({ fieldId: "custitem_mro_pricematrixgroup" });
+        var pricematrixgroup_id = item.getValue({fieldId: "custitem_mro_pricematrixgroup"});
         if (pricematrixgroup_id) {
             var cost = getItemPriceLevelPrice(item, 1);
             var search = _search.create({
@@ -316,21 +324,24 @@ define(['N/record', 'N/search', 'N/log', 'N/crypto', 'N/encode', 'N/cache'], fun
             var result_count = search.runPaged().count;
 
             if (result_count == 0) {
-                var pricematrixgroup = _record.load({ type: "customrecord_mro_item_pricematrixgroup", id: pricematrixgroup_id });
+                var pricematrixgroup = _record.load({
+                    type: "customrecord_mro_item_pricematrixgroup",
+                    id: pricematrixgroup_id
+                });
                 return pricematrixgroup.getValue("custrecord_pmg_defaultprc_formula");
             }
             //There should only be one, we need to enforce rule set using a UserEvent Script on price matrix to ensure that cost ranges do not overlap
             if (result_count == 1) {
                 var resultSet = search.run();
-                var range = resultSet.getRange({ start: 0, end: result_count });
-                return range[0].getValue({ name: "custrecord_mro_pm_defaultprc_formula" });
+                var range = resultSet.getRange({start: 0, end: result_count});
+                return range[0].getValue({name: "custrecord_mro_pm_defaultprc_formula"});
             }
         }
         return -1;
     }
 
     function getItemAmazonPriceMatrixLevel(item) {
-        var pricematrixgroup_id = item.getValue({ fieldId: "custitem_mro_pricematrixgroup" });
+        var pricematrixgroup_id = item.getValue({fieldId: "custitem_mro_pricematrixgroup"});
         if (pricematrixgroup_id) {
             var cost = getItemPriceLevelPrice(item, 1);
             var search = _search.create({
@@ -349,15 +360,18 @@ define(['N/record', 'N/search', 'N/log', 'N/crypto', 'N/encode', 'N/cache'], fun
             var result_count = search.runPaged().count;
 
             if (result_count == 0) {
-                var pricematrixgroup = _record.load({ type: "customrecord_mro_item_pricematrixgroup", id: pricematrixgroup_id });
+                var pricematrixgroup = _record.load({
+                    type: "customrecord_mro_item_pricematrixgroup",
+                    id: pricematrixgroup_id
+                });
                 return pricematrixgroup.getValue("custrecord_pmg_amazonprc_formula");
             }
             //There should only be one, we need to enforce rule set using a UserEvent Script on price matrix to ensure that cost ranges do not overlap
 
             if (result_count == 1) {
                 var resultSet = search.run();
-                var range = resultSet.getRange({ start: 0, end: result_count });
-                return range[0].getValue({ name: "custrecord_mro_pm_amazonprc_formula" });
+                var range = resultSet.getRange({start: 0, end: result_count});
+                return range[0].getValue({name: "custrecord_mro_pm_amazonprc_formula"});
             }
 
         }
@@ -367,19 +381,19 @@ define(['N/record', 'N/search', 'N/log', 'N/crypto', 'N/encode', 'N/cache'], fun
     function getUnitTypeConversion(unittype, sub_id) {
 
         var sublist = "uom";
-        var lines = unittype.getLineCount({ sublistId: sublist });
+        var lines = unittype.getLineCount({sublistId: sublist});
 
         for (var line = 0; line < lines; line++) {
-            var id = unittype.getSublistValue({ sublistId: sublist, fieldId: "internalid", line: line });
+            var id = unittype.getSublistValue({sublistId: sublist, fieldId: "internalid", line: line});
             if (id == sub_id) {
-                return unittype.getSublistValue({ sublistId: sublist, fieldId: "conversionrate", line: line });
+                return unittype.getSublistValue({sublistId: sublist, fieldId: "conversionrate", line: line});
             }
         }
         return -1;
     }
 
     function convertCostToPrice(item) {
-        var unittype = _record.load({ type: "unitstype", id: item.getValue("unitstype") });
+        var unittype = _record.load({type: "unitstype", id: item.getValue("unitstype")});
         var purchase_conv = getUnitTypeConversion(unittype, item.getValue("purchaseunit"));
         var sale_conv = getUnitTypeConversion(unittype, item.getValue("saleunit"));
         var cost = getItemVendorPreferredCost(item);
