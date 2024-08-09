@@ -541,7 +541,10 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                 sublistId: 'addressbook',
                 fieldId: 'addressbookaddress'
             });
-
+            myAddressSubRecord.setValue({
+                fieldId: 'country',
+                value: address.country
+            });
             myAddressSubRecord.setValue({
                 fieldId: 'addr1',
                 value: address.address1
@@ -550,11 +553,6 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
             myAddressSubRecord.setValue({
                 fieldId: 'addr2',
                 value: address.address2
-            });
-
-            myAddressSubRecord.setValue({
-                fieldId: 'country',
-                value: address.country
             });
 
             myAddressSubRecord.setValue({
