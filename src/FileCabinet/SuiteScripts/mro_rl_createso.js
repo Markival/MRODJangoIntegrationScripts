@@ -60,7 +60,7 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                     };
                 }
             } catch (err) {
-                log.debug({title: 'POST', details: JSON.stringify(err)});
+                log.debug({ title: 'POST', details: JSON.stringify(err) });
                 return {
                     success: false,
                     message: err.message
@@ -72,13 +72,14 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
             }
 
             if (isNullOrEmpty(custRecord)) {
-                return {success: false, message: 'Customer record not exist!'};
+                return { success: false, message: 'Customer record not exist!' };
             }
 
             var soId = null;
+            var tranId = null;
             try {
                 // Get Sales Order Record
-                var soRecord = record.create({type: record.Type.SALES_ORDER, isDynamic: true});
+                var soRecord = record.create({ type: record.Type.SALES_ORDER, isDynamic: true });
                 var itemTotalPrice = 0;
 
                 soRecord.setValue('customform', 229); // MRO - Sales Order
@@ -143,12 +144,12 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                              */
 
                 // Create line items in new order
-                var lineCount = soRecord.getLineCount({sublistId: 'item'});
+                var lineCount = soRecord.getLineCount({ sublistId: 'item' });
                 var vendors = getVendors(params);
                 //  var itemsBaseUOM = getItemsBaseUnit(params); Note: Already item record is being loaded and we can get base unit from item record. We can use this in case of any governance issues.
 
                 for (var i = 0; i < lineCount; i++) {
-                    soRecord.removeLine({sublistId: 'item', line: 0});
+                    soRecord.removeLine({ sublistId: 'item', line: 0 });
                 }
 
                 /* for (var i = 0; i < params.items.length; i++) {
@@ -170,7 +171,7 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                     log.debug('item', item);
 
                     if (item != null) {
-                        soRecord.selectNewLine({sublistId: 'item'});
+                        soRecord.selectNewLine({ sublistId: 'item' });
 
                         soRecord.setCurrentSublistValue({
                             sublistId: 'item',
@@ -269,44 +270,44 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                         });
 
 
-                        var shippingMethod = itemObj.shippingMethod;
-                        log.debug('shippingMethod', shippingMethod);
-                        if (!isNullOrEmpty(shippingMethod)) {
-                            var shipitemSearchObj = search.create({
-                                type: "shipitem",
-                                filters:
-                                    [
-                                        ["displayname", "is", shippingMethod]
-                                    ],
-                                columns:
-                                    [
-                                        "internalid"
-                                    ]
-                            });
-                            var searchResultCount = shipitemSearchObj.runPaged().count;
-                            log.debug("shipitemSearchObj result count", searchResultCount);
-                            if (searchResultCount > 0) {
-                                shipitemSearchObj.run().each(function (result) {
-                                    shippingMethodId = result.getValue({name: 'internalid'});
-                                    return false;
-                                });
-                            }
-                            log.debug('shippingMethodId', shippingMethodId);
-                            if (i == 0) {
-                                shippingMethodIdline0 = shippingMethodId;
-                            }
+                        // var shippingMethod = itemObj.shippingMethodId;
+                        // log.debug('shippingMethod', shippingMethod);
+                        /* if (!isNullOrEmpty(shippingMethod)) {
+                             var shipitemSearchObj = search.create({
+                                 type: "shipitem",
+                                 filters:
+                                     [
+                                         ["displayname", "is", shippingMethod]
+                                     ],
+                                 columns:
+                                     [
+                                         "internalid"
+                                     ]
+                             });
+                             var searchResultCount = shipitemSearchObj.runPaged().count;
+                             log.debug("shipitemSearchObj result count", searchResultCount);
+                             if (searchResultCount > 0) {
+                                 shipitemSearchObj.run().each(function (result) {
+                                     shippingMethodId = result.getValue({ name: 'internalid' });
+                                     return false;
+                                 });
+                             }
+                             log.debug('shippingMethodId', shippingMethodId);*/
+
+                        if (!isNullOrEmpty(itemObj.shippingMethodId)) {
                             soRecord.setCurrentSublistValue({
                                 sublistId: 'item',
                                 fieldId: 'custcol_mrk_shipping_method',
-                                value: shippingMethodId
+                                value: itemObj.shippingMethodId
                             });
                         }
-
-                        soRecord.setCurrentSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'custcol_mrk_shipping_carrier',
-                            value: itemObj.shippingCarrier
-                        });
+                        if (!isNullOrEmpty(itemObj.shippingCarrier)) {
+                            soRecord.setCurrentSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'custcol_mrk_shipping_carrier',
+                                value: itemObj.shippingCarrier || ''
+                            });
+                        }
                         soRecord.setCurrentSublistValue({
                             sublistId: 'item',
                             fieldId: 'custcol_mrk_shipping_acc_number',
@@ -316,11 +317,11 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                             sublistId: 'item'
                         });
                     } else {
-                        itemsNotFound.push({'id': itemObj.id, 'externalId': itemObj.externalId});
+                        itemsNotFound.push({ 'id': itemObj.id, 'externalId': itemObj.externalId });
                     }
                 }
                 if (itemsNotFound.length == params.items.length) {
-                    return {success: false, message: 'Following Items not found!' + ' ' + JSON.stringify(itemsNotFound)}
+                    return { success: false, message: 'Following Items not found!' + ' ' + JSON.stringify(itemsNotFound) }
                 }
                 //TODO: else if itemsNotFound.length > 0, return message with items not found
 
@@ -331,9 +332,8 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                 if (!isNullOrEmpty(itemObjLine0.shippingCarrier)) {
                     soRecord.setValue('custbody_mrk_shipping_carrier', itemObjLine0.shippingCarrier);
                 }
-                if (!isNullOrEmpty(shippingMethodIdline0)) {
-                    log.debug('shippingMethodIdline0', shippingMethodIdline0);
-                    soRecord.setValue('custbody_mrk_shipping_method', shippingMethodIdline0);
+                if (!isNullOrEmpty(itemObjLine0.shippingMethodId)) {
+                    soRecord.setValue('custbody_mrk_shipping_method', itemObjLine0.shippingMethodId);
                 }
                 if (!isNullOrEmpty(itemObjLine0.shippingAccountNumber)) {
                     soRecord.setValue('custbody_mrk_shipping_acc_number', itemObjLine0.shippingAccountNumber);
@@ -374,14 +374,25 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                     }
                 }
 
-                soId = soRecord.save({/*enableSourcing: true,*/ ignoreMandatoryFields: true});
+                soId = soRecord.save({/*enableSourcing: true,*/ ignoreMandatoryFields: true });
+                log.debug('soId', soId);
+                // return SO document number
+                if (!isNullOrEmpty(soId)) {
+                    tranId = search.lookupFields({
+                        type: search.Type.SALES_ORDER,
+                        id: soId,
+                        columns: ['tranid']
+                    }).tranid;
+                }
+
                 //declare result object
                 var result = {};
                 result = {
                     "success": true,
                     "message": "SO Record created successfully!",
                     "data": {
-                        "id": soId
+                        "id": soId,
+                        "tranId": tranId
                     }
                 };
             } catch (err) {
@@ -523,7 +534,10 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                 sublistId: 'addressbook',
                 fieldId: 'addressbookaddress'
             });
-
+            myAddressSubRecord.setValue({
+                fieldId: 'country',
+                value: address.country
+            });
             myAddressSubRecord.setValue({
                 fieldId: 'addr1',
                 value: address.address1
@@ -532,11 +546,6 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
             myAddressSubRecord.setValue({
                 fieldId: 'addr2',
                 value: address.address2
-            });
-
-            myAddressSubRecord.setValue({
-                fieldId: 'country',
-                value: address.country
             });
 
             myAddressSubRecord.setValue({
@@ -583,7 +592,7 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
             var pagedData = searchObj.runPaged();
             pagedData.pageRanges.forEach(function (pageRange) {
 
-                var curPage = pagedData.fetch({index: pageRange.index});
+                var curPage = pagedData.fetch({ index: pageRange.index });
 
                 curPage.data.forEach(function (result) {
                     resultArray.push(result);
@@ -673,7 +682,7 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
          */
         function getCurrentDate() {
             var dateNow = new Date();
-            var tempDateNowX = format.format({value: dateNow, type: format.Type.DATETIME});
+            var tempDateNowX = format.format({ value: dateNow, type: format.Type.DATETIME });
             var curDate = new Date(tempDateNowX);
             return curDate;
         }
@@ -699,7 +708,7 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                     requestsRecord.setValue('custrecord_mrk_json_request', JSON.stringify(jsonData));
                     requestsRecord.setValue('custrecord_mrk_request_type', type);
                     requestsRecord.setValue('custrecord_mrk_request_record_type', recordType);
-                    requestsRecord.save({ignoreMandatoryFields: true});
+                    requestsRecord.save({ ignoreMandatoryFields: true });
                 }
             } catch (e) {
                 log.error('Error', e);
@@ -721,7 +730,7 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                     var conditions = vendorIds.map(function (vendorId) {
                         return ['entityid', 'is', vendorId];
                     });
-// Flatten the conditions array and insert "OR" between each condition
+                    // Flatten the conditions array and insert "OR" between each condition
                     var filterArray = [];
                     conditions.forEach(function (condition, index) {
                         if (index > 0) {
@@ -768,16 +777,16 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                 //create search for vendors. filter entityid by vendorIds
                 if (itemIds.length > 0) {
                     let sql = `SELECT 
-                                      Item.id itemId, 
-                                      UnitsTypeUom.internalid as baseUnitId 
-                                    FROM 
-                                      Item 
-                                      JOIN UnitsType on Item.unitstype = unitsType.id 
-                                      JOIN UnitsTypeUom on UnitsType.id = UnitsTypeUom.unitstype 
-                                    WHERE 
-                                      Item.id in (${itemIds.join(',')})
-                                      and UnitsTypeUom.baseUnit = 'T'
-                                    `;
+                                Item.id itemId, 
+                                UnitsTypeUom.internalid as baseUnitId 
+                              FROM 
+                                Item 
+                                JOIN UnitsType on Item.unitstype = unitsType.id 
+                                JOIN UnitsTypeUom on UnitsType.id = UnitsTypeUom.unitstype 
+                              WHERE 
+                                Item.id in (${itemIds.join(',')})
+                                and UnitsTypeUom.baseUnit = 'T'
+                              `;
                     log.debug('sql', sql);
                     let queryResultSet = queryMod.runSuiteQL({
                         query: sql
