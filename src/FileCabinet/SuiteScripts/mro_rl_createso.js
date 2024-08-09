@@ -76,6 +76,7 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
             }
 
             var soId = null;
+            var tranId = null;
             try {
                 // Get Sales Order Record
                 var soRecord = record.create({type: record.Type.SALES_ORDER, isDynamic: true});
@@ -276,9 +277,9 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                         });
 
 
-                        var shippingMethod = itemObj.shippingMethod;
-                        log.debug('shippingMethod', shippingMethod);
-                        if (!isNullOrEmpty(shippingMethod)) {
+                        // var shippingMethod = itemObj.shippingMethodId;
+                        // log.debug('shippingMethod', shippingMethod);
+                       /* if (!isNullOrEmpty(shippingMethod)) {
                             var shipitemSearchObj = search.create({
                                 type: "shipitem",
                                 filters:
@@ -298,22 +299,22 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                                     return false;
                                 });
                             }
-                            log.debug('shippingMethodId', shippingMethodId);
-                            if (i == 0) {
-                                shippingMethodIdline0 = shippingMethodId;
-                            }
+                            log.debug('shippingMethodId', shippingMethodId);*/
+                            
+                            if (!isNullOrEmpty(itemObj.shippingMethodId)) {
                             soRecord.setCurrentSublistValue({
                                 sublistId: 'item',
                                 fieldId: 'custcol_mrk_shipping_method',
-                                value: shippingMethodId
+                                value: itemObj.shippingMethodId
                             });
                         }
-
+                        if (!isNullOrEmpty(itemObj.shippingCarrier)) {
                         soRecord.setCurrentSublistValue({
                             sublistId: 'item',
                             fieldId: 'custcol_mrk_shipping_carrier',
-                            value: itemObj.shippingCarrier
+                            value: itemObj.shippingCarrier || ''
                         });
+                    }
                         soRecord.setCurrentSublistValue({
                             sublistId: 'item',
                             fieldId: 'custcol_mrk_shipping_acc_number',
@@ -338,9 +339,8 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                 if (!isNullOrEmpty(itemObjLine0.shippingCarrier)) {
                     soRecord.setValue('custbody_mrk_shipping_carrier', itemObjLine0.shippingCarrier);
                 }
-                if (!isNullOrEmpty(shippingMethodIdline0)) {
-                    log.debug('shippingMethodIdline0', shippingMethodIdline0);
-                    soRecord.setValue('custbody_mrk_shipping_method', shippingMethodIdline0);
+                if (!isNullOrEmpty(itemObjLine0.shippingMethodId)) {
+                    soRecord.setValue('custbody_mrk_shipping_method', itemObjLine0.shippingMethodId);
                 }
                 if (!isNullOrEmpty(itemObjLine0.shippingAccountNumber)) {
                     soRecord.setValue('custbody_mrk_shipping_acc_number', itemObjLine0.shippingAccountNumber);
@@ -382,13 +382,24 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                 }
 
                 soId = soRecord.save({/*enableSourcing: true,*/ ignoreMandatoryFields: true});
+                log.debug('soId', soId);
+                // return SO document number
+                if (!isNullOrEmpty(soId)) {
+                   tranId = search.lookupFields({
+                        type: search.Type.SALES_ORDER,
+                        id: soId,
+                        columns: ['tranid']
+                    }).tranid;
+                }
+
                 //declare result object
                 var result = {};
                 result = {
                     "success": true,
                     "message": "SO Record created successfully!",
                     "data": {
-                        "id": soId
+                        "id": soId,
+                        "tranId": tranId
                     }
                 };
             } catch (err) {
