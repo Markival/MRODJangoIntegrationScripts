@@ -184,7 +184,7 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                      /*   soRecord.setCurrentSublistValue({
                             sublistId: 'item',
                             fieldId: 'description',
-                            value: item.description
+                            value: itemObj.description
                         });*/
 
                         //set units
