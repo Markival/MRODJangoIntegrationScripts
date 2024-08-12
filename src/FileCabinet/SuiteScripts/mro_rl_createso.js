@@ -180,6 +180,12 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                             fieldId: 'item',
                             value: Number(item.id)
                         });
+                        
+                     /*   soRecord.setCurrentSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'description',
+                            value: item.description
+                        });*/
 
                         //set units
                         log.debug('baseunit', item.getValue('baseunit'));
