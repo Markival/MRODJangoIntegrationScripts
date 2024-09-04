@@ -282,7 +282,7 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log', 'N/runtime'],
                             id: intSalesOrderId,
                             values: {
                                 custbody_payment_card_token: paymentTokenId,
-                                custbody_mrk_cs_request_id: context.cyberSourceRequestId || '',
+                                custbody_mrk_cs_request_id: context.cyberSourceRequestID || '',
                                 custbody_mrk_payload: JSON.stringify(context)
                             }
                         })
