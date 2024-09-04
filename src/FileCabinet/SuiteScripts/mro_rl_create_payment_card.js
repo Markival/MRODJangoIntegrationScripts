@@ -142,7 +142,7 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log', 'N/runtime'],
 
                 linkPaymentToSalesOrder(context.externalid, pcRec.id, context.customer, context);
             } catch (err) {
-                log.debug({ title: 'POST', details: JSON.stringify(err) });
+                log.debug({title: 'POST', details: JSON.stringify(err)});
                 result = {
                     success: false,
                     message: err.message
@@ -259,7 +259,7 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log', 'N/runtime'],
                 ]
             });
             if (objSearch.runPaged().count > 0) {
-                objSearch.run().getRange({ start: 0, end: 1 }).forEach(function (result) {
+                objSearch.run().getRange({start: 0, end: 1}).forEach(function (result) {
                     intOrderId = result.id;
                 });
             }
@@ -282,6 +282,7 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log', 'N/runtime'],
                             id: intSalesOrderId,
                             values: {
                                 custbody_payment_card_token: paymentTokenId,
+                                custbody_mrk_cs_request_id: context.cyberSourceRequestId || '',
                                 custbody_mrk_payload: JSON.stringify(context)
                             }
                         })
@@ -302,7 +303,7 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log', 'N/runtime'],
             }
         }
 
-        function orderAndCustomerMatch (salesOrderExternalId, customer) {
+        function orderAndCustomerMatch(salesOrderExternalId, customer) {
             var isMatch = false;
             var objSearch = search.create({
                 type: search.Type.SALES_ORDER,
@@ -369,7 +370,7 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log', 'N/runtime'],
          */
         function getCurrentDate() {
             var dateNow = new Date();
-            var tempDateNowX = format.format({ value: dateNow, type: format.Type.DATETIME });
+            var tempDateNowX = format.format({value: dateNow, type: format.Type.DATETIME});
             var curDate = new Date(tempDateNowX);
             return curDate;
         }
@@ -415,7 +416,7 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log', 'N/runtime'],
             try {
                 var logLevel = runtime.getCurrentScript().logLevel;
                 log.debug('logLevel', logLevel);
-                if(logLevel === 'DEBUG') {
+                if (logLevel === 'DEBUG') {
                     var requestsRecord = record.create({
                         type: 'customrecord_mrk_json_incoming_requests'
                     });
@@ -424,8 +425,7 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log', 'N/runtime'],
                     requestsRecord.setValue('custrecord_mrk_request_record_type', recordType);
                     requestsRecord.save({ignoreMandatoryFields: true});
                 }
-            }
-            catch(e) {
+            } catch (e) {
                 log.error('Error', e);
             }
         }
@@ -445,13 +445,13 @@ define(['N/record', 'N/error', 'N/search', 'N/format', 'N/log', 'N/runtime'],
         function validateSalesOrder(salesOrderId) {
             var isExisting = false;
             if (!isNullOrEmpty(salesOrderId) && getSalesOrder(salesOrderId)) isExisting = true;
-            
+
             if (!isExisting) {
                 throw error.create({
                     name: 'MISSING_REQ_ARG',
                     message: 'Missing a required argument: salesOrderId for method: validateSalesOrder'
                 });
-            } 
+            }
             return isExisting;
         }
 
