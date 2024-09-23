@@ -95,6 +95,12 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                 if (!isNullOrEmpty(params.taxTotal)) {
                     soRecord.setValue('custbody_mrk_mro_sales_tax', params.taxTotal);
                 }
+                if (!isNullOrEmpty(params.paypalTranId)) {
+                    soRecord.setValue('custbody_mrk_paypal_transaction_id', String(params.paypalTranId));
+                }
+                if (!isNullOrEmpty(params.paypalTranAmt)) {
+                    soRecord.setValue('custbody_mrk_paypal_transaction_amount', params.paypalTranAmt);
+                }
 
                 // TODO: Set Sales Rep from Customer - Sales Rep
                 // var custSalesRep = custRecord.getValue('salesrep');
@@ -191,31 +197,98 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                             value: item.getValue('baseunit')
                         });
 
-
-                        //add povendor
-                        if (!isNullOrEmpty(itemObj.vendorId)) {
-                            var vendorId = vendors.hasOwnProperty(itemObj.vendorId) ? vendors[itemObj.vendorId] : '';
-                            if (!isNullOrEmpty(vendorId)) {
-                                soRecord.setCurrentSublistValue({
-                                    sublistId: 'item',
-                                    fieldId: 'povendor',
-                                    value: vendorId
-                                });
-                                //set createpo field to Dropship
+                        if(!isNullOrEmpty(itemObj.potype)){
+                        switch ((itemObj.potype).toLowerCase()) {
+                            case 'dspo':
+                                if (!isNullOrEmpty(itemObj.vendorId) ) {
+                                    var vendorId = vendors.hasOwnProperty(itemObj.vendorId) ? vendors[itemObj.vendorId] : '';
+                                    if (!isNullOrEmpty(vendorId)) {
+                                        soRecord.setCurrentSublistValue({
+                                            sublistId: 'item',
+                                            fieldId: 'povendor',
+                                            value: vendorId
+                                        });
+                                    }
+                                }
+                                        //set createpo field to Dropship //
+                                        soRecord.setCurrentSublistValue({
+                                            sublistId: 'item',
+                                            fieldId: 'createpo',
+                                            value: 'DropShip'
+                                        });
+                                        if(!isNullOrEmpty(itemObj.locationId)){
+                                            soRecord.setCurrentSublistValue({
+                                                sublistId: 'item',
+                                                fieldId: 'location',
+                                                value: itemObj.locationId
+                                            });
+                                        } else { 
+                                            soRecord.setCurrentSublistValue({
+                                                sublistId: 'item',
+                                                fieldId: 'location',
+                                                value: 4
+                                            });
+                                        }
+                                break;
+                            case 'sopo':
+                                if (!isNullOrEmpty(itemObj.vendorId) ) {
+                                    var vendorId = vendors.hasOwnProperty(itemObj.vendorId) ? vendors[itemObj.vendorId] : '';
+                                    if (!isNullOrEmpty(vendorId)) {
+                                        soRecord.setCurrentSublistValue({
+                                            sublistId: 'item',
+                                            fieldId: 'povendor',
+                                            value: vendorId
+                                        });
+                                    }
+                                }
+                                        //set createpo field to Special Order
+                                        soRecord.setCurrentSublistValue({
+                                            sublistId: 'item',
+                                            fieldId: 'createpo',
+                                            value: 'SpecOrd'
+                                        });
+                                        // set location
+                                        if(!isNullOrEmpty(itemObj.locationId)){
+                                        soRecord.setCurrentSublistValue({
+                                            sublistId: 'item',
+                                            fieldId: 'location',
+                                            value: itemObj.locationId
+                                        });
+                                        }
+                                break;
+                                case 'stock':
+                                    if(!isNullOrEmpty(itemObj.locationId)){
+                                    soRecord.setCurrentSublistValue({
+                                        sublistId: 'item',
+                                        fieldId: 'location',
+                                        value: itemObj.locationId
+                                    });
+                                }
+                                    soRecord.setCurrentSublistValue({
+                                        sublistId: 'item',
+                                        fieldId: 'createpo',
+                                        value: ''
+                                    });
+                                    
+                                    break;
+                            default:
                                 soRecord.setCurrentSublistValue({
                                     sublistId: 'item',
                                     fieldId: 'createpo',
-                                    value: 'DropShip'
+                                    value: ''
                                 });
-                            }
-
+                                break;
                         }
-                        //add location
-                        soRecord.setCurrentSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'location',
-                            value: 4
-                        });
+                    }
+                    
+
+                        // //add location
+                        // soRecord.setCurrentSublistValue({
+                        //     sublistId: 'item',
+                        //     fieldId: 'location',
+                        //     value: 4
+                        // });
+
                         //add financial location - eCommerce = 4
                         soRecord.setCurrentSublistValue({
                             sublistId: 'item',
