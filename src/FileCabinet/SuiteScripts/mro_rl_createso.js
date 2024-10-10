@@ -375,14 +375,14 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                             soRecord.setCurrentSublistValue({
                                 sublistId: 'item',
                                 fieldId: 'custcol_mrk_shipping_method',
-                                value: '' //itemObj.shippingMethodId
+                                value: itemObj.shippingMethodId
                             });
                         }
                         if (!isNullOrEmpty(itemObj.shippingCarrier)) {
                             soRecord.setCurrentSublistValue({
                                 sublistId: 'item',
                                 fieldId: 'custcol_mrk_shipping_carrier',
-                                value: '' //itemObj.shippingCarrier || ''
+                                value: itemObj.shippingCarrier || ''
                             });
                         }
                         soRecord.setCurrentSublistValue({
@@ -407,10 +407,10 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                 log.debug('itemObjLine0', itemObjLine0);
 
                 if (!isNullOrEmpty(itemObjLine0.shippingCarrier)) {
-                   // soRecord.setValue('custbody_mrk_shipping_carrier', itemObjLine0.shippingCarrier);
+                   soRecord.setValue('custbody_mrk_shipping_carrier', itemObjLine0.shippingCarrier);
                 }
                 if (!isNullOrEmpty(itemObjLine0.shippingMethodId)) {
-                  //  soRecord.setValue('custbody_mrk_shipping_method', itemObjLine0.shippingMethodId);
+                  soRecord.setValue('custbody_mrk_shipping_method', itemObjLine0.shippingMethodId);
                 }
                 if (!isNullOrEmpty(itemObjLine0.shippingAccountNumber)) {
                     soRecord.setValue('custbody_mrk_shipping_acc_number', itemObjLine0.shippingAccountNumber);
