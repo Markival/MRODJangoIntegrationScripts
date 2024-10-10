@@ -95,12 +95,12 @@ define(['N/record', 'N/error', 'N/search', 'N/email', 'N/format', 'N/log', 'N/co
                 if (!isNullOrEmpty(params.taxTotal)) {
                     soRecord.setValue('custbody_mrk_mro_sales_tax', params.taxTotal);
                 }
-                if (!isNullOrEmpty(params.paypalTranId)) {
+           /*     if (!isNullOrEmpty(params.paypalTranId)) {
                     soRecord.setValue('custbody_mrk_paypal_transaction_id', String(params.paypalTranId));
                 }
                 if (!isNullOrEmpty(params.paypalTranAmt)) {
                     soRecord.setValue('custbody_mrk_paypal_transaction_amount', params.paypalTranAmt);
-                }
+                } */
 
                 // TODO: Set Sales Rep from Customer - Sales Rep
                 // var custSalesRep = custRecord.getValue('salesrep');
